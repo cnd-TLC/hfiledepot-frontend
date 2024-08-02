@@ -42,21 +42,20 @@
 			sendPrButtonIsDisabled.value = true
 			if (formType === 'submit'){
 				await axios.post(apiEndPoint + '/api/add_pr', { 
-					// pr_no: prFormData.pr_no, 
-					// section: prFormData.section, 
-					// fpp: prFormData.fpp, 
-					// fund: prFormData.fund, 
 					purpose: prFormData.purpose,
 				}).then((res) => {
 					console.log(res.data.message)
 					pr_id.value = res.data.id
 					router.push({ name: 'request_items', params: { 
 						id: res.data.id, 
+						department: res.data.department,
+						requested_by: res.data.requested_by,
+						status: res.data.status,
 					} })
 				})
 			}
 			else{
-				await axios.post(apiEndPoint + '/api/update_pr/' + props.data.id, { 
+				await axios.put(`${apiEndPoint}/api/update_pr/${props.data.id}`, { 
 					// pr_no: prFormData.pr_no, 
 					// section: prFormData.section, 
 					// fpp: prFormData.fpp, 

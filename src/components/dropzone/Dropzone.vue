@@ -2,6 +2,7 @@
   import { ref, onMounted } from 'vue'
   import { useDropzone } from 'vue3-dropzone'
   import { apiEndPoint } from '@/constant/data'
+  import { generateRandomString, downloadBlob } from '@/constant/functions'
   import { UploadFilled, Close, Document } from '@element-plus/icons-vue'
   import axios from 'axios'
 
@@ -24,16 +25,6 @@
   const textColor = ref('info')
   const iconColor = ref('#909399')
 
-  const generateRandomString = (length) => {
-    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-    let randomString = ''
-    for (let i = 0; i < length; i++) {
-        const randomIndex = Math.floor(Math.random() * charset.length)
-        randomString += charset[randomIndex]
-    }
-    return randomString
-  }
-
   const fetchUploadedItems = () => {
     axios.get(fetchUrl)
     .then((response) => {
@@ -49,7 +40,7 @@
   const saveFiles = (files) => {
     const formData = new FormData();
     for (let i = 0; i < files.length; i++) {
-      formData.append('attachments[]', files[i]);
+      formData.append('attachments[]', files[i])
     }
     // loading.value = true
     axios.post(uploadUrl, formData, {
@@ -58,7 +49,7 @@
       },
     })
     .then((res) => {
-      console.info(res.data.message);
+      console.info(res.data.message)
       fetchUploadedItems()
     })
     .catch((err) => {
@@ -79,16 +70,7 @@
       responseType: 'blob'
     })
     .then((res) =>{
-      const contentDisposition = res.headers['content-disposition']
-      let filename = generateRandomString(20)
-
-      const blob = new Blob([res.data], { type: res.headers['content-type'] })
-      const link = document.createElement('a')
-      link.href = window.URL.createObjectURL(blob)
-      link.setAttribute('download', filename)
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+      downloadBlob(res)
     })
   }
 
@@ -99,21 +81,21 @@
   };
 
   const onDrop = (acceptedFiles, rejectedFiles) => {
-    saveFiles(acceptedFiles);
-    console.log(acceptedFiles);
-    console.log(rejectedFiles);
+    saveFiles(acceptedFiles)
+    // console.log(acceptedFiles)
+    // console.log(rejectedFiles)
   }
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: 'image/*, application/pdf, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     onDragEnter: () => {
-      isDragActive.value = true;
+      isDragActive.value = true
       textColor.value = 'primary'
       iconColor.value = '#409eff' 
     },
     onDragLeave: () => {
-      isDragActive.value = false;
+      isDragActive.value = false
       textColor.value = 'info'
       iconColor.value = '#909399' 
     },
@@ -138,7 +120,7 @@
     </div>
     <el-skeleton animated :loading="loading">
       <template #template>
-        <el-skeleton-item v-for="n in 5" variant="text" style="width: 100%" />
+        <el-skeleton-item variant="image" style="width: 100%; height: 100px" />
       </template>
       <template #default>
         <div v-if="uploadedItems != null">
@@ -220,7 +202,6 @@
   .item-display .document-icon-area {
     padding: 0 0 10px 0;
     text-align: center;
-    background-color: rgb(240, 240, 240);
   }
 
   .no-spacing {
@@ -249,7 +230,6 @@
     width: 100%;
     padding: 6px 7px;
     text-align: right;
-    background-color: rgb(240, 240, 240);
   }  
 
   .no-attachment {

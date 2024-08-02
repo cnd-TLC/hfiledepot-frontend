@@ -8,6 +8,7 @@ export default defineConfig({
   plugins: [
     vue(),
   ],
+  assetsInclude: ['**/*.dat'],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

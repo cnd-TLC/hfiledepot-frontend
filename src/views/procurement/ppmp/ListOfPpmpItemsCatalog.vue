@@ -6,12 +6,15 @@
 	import axios from 'axios'
 	import CatalogForm from '@/views/procurement/ppmp/ppmp_catalog_form/CatalogForm.vue'
 	import RemoveForm from '@/views/procurement/ppmp/ppmp_catalog_form/RemoveForm.vue'
+	import BulkUploadForm from '@/components/dropzone/BulkUpload.vue'
 
 	const auth = useAuth()
+
 
 	const listPpmpItemTableData = ref([])
 	const clickedRow = ref([])
 	const labelPosition = ref<FormProps['labelPosition']>('top')
+	const showBulkUploadForm = ref(false)
 	const showCatalogForm = ref(false)
 	const showRemoveForm = ref(false)
 	const showUpdateItemForm = ref(false)
@@ -38,6 +41,8 @@
 			showUpdateItemForm.value = true
 		if (formName === 'RemoveForm')
 			showRemoveForm.value = true
+		if (formName === 'BulkUploadForm')
+			showBulkUploadForm.value = true
 	}
 
 	const loadCatalogItemsData = async () => {
@@ -49,7 +54,7 @@
 			}  
 		}
 		try {
-			await axios.get(apiEndPoint + '/api/list_of_ppmp_items_catalog/' + pageSize.value + '/?page=' + currentPage.value).then((res) => {
+			await axios.get(`${apiEndPoint}/api/list_of_ppmp_items_catalog/${pageSize.value}/?page=${currentPage.value}`).then((res) => {
 				listPpmpItemTableData.value = res.data.retrievedData
 				totalRecords.value = res.data.total
 			})
@@ -57,6 +62,7 @@
 			showCatalogForm.value = false
 			showRemoveForm.value = false
 			showUpdateItemForm.value = false
+			showBulkUploadForm.value = false
 		}
 		catch (err) {
 			console.log('Error loading data', err)
@@ -110,12 +116,17 @@
 	<el-dialog destroy-on-close :overflow="false" v-model="showRemoveForm" title="Remove Item" width="400">
 		<remove-form @removeButtonIsClicked="loadCatalogItemsData" :data="clickedRow"/>
 	</el-dialog>
+	<el-dialog destroy-on-close :overflow="false" v-model="showBulkUploadForm" title="Bulk Upload" width="600">
+		<bulk-upload-form :type="'ppmp_catalog'" :data="clickedRow" @fileUploaded="loadCatalogItemsData" />
+	</el-dialog>
 
 	<el-text class="title"> PPMP Items Catalog </el-text>
 	<el-card shadow="never">
 		<el-skeleton animated :loading="loading">
 			<template #template>
 				<div class="custom-card">
+					<el-skeleton-item variant="button" style="width: 13%" />
+					&nbsp;
 					<el-skeleton-item variant="button" style="width: 7%" />
 				</div>
 				<el-divider />
@@ -127,6 +138,7 @@
 			</template>
 			<template #default>
 				<div class="custom-card">
+					<el-button type="success" v-if="checkPermission('ppmpItemsCatalogHasAdd')" @click="showForm('BulkUploadForm', {id: 0})"> Bulk Upload Items </el-button>
 					<el-button type="success" v-if="checkPermission('ppmpItemsCatalogHasAdd')" @click="showForm('CatalogForm', null)"> Add Item </el-button>
 					<el-divider />
 					<el-table :data="listPpmpItemTableData" stripe border>

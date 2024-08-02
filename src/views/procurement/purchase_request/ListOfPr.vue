@@ -1,17 +1,20 @@
 <script lang='ts' setup>
-	import { ref, reactive, onMounted } from 'vue'
+	import { ref, reactive, onMounted, computed } from 'vue'
 	import { useAuth } from 'vue-auth3'
 	import { ComponentSize } from 'element-plus'
 	import { apiEndPoint } from '@/constant/data'
+	import { useDark } from '@vueuse/core'
+	import { useRouter } from 'vue-router'
 	import axios from 'axios'
 	import PrForm from '@/views/procurement/purchase_request/pr_form/PrForm.vue'
 	import PreviewForm from '@/views/procurement/purchase_request/pr_form/PreviewForm.vue'
 	import AttachmentForm from '@/components/dropzone/Dropzone.vue'
 	import RemoveForm from '@/views/procurement/purchase_request/pr_form/RemoveForm.vue'
-	import { useRouter } from 'vue-router'
 
 	const router = useRouter()
 	const auth = useAuth()
+	const isDark = useDark({ disableTransition: false })
+
 
 	const listPrTableData = ref([])
 	const clickedRow = ref([])
@@ -58,7 +61,7 @@
 			}  
 		}
 		try {
-			await axios.get(apiEndPoint + '/api/list_of_user_pr/' + pageSize.value + '/?page=' + currentPage.value).then((res) => {
+			await axios.get(`${apiEndPoint}/api/list_of_user_pr/${pageSize.value}/?page=${currentPage.value}`).then((res) => {
 				listPrTableData.value = res.data.retrievedData
 				totalRecords.value = res.data.total
 			})
@@ -104,7 +107,10 @@
 		clickedRow.value = data
 		try{
 			router.push({ name: 'request_items', params: { 
-				id: clickedRow.value.id
+				id: clickedRow.value.id,
+				department: clickedRow.value.department,
+				requested_by: clickedRow.value.requested_by,
+				status: clickedRow.value.status,
 			} })
 		}
 		catch (err) {
@@ -114,6 +120,10 @@
 
 		}
 	}
+
+	const tagEffect = computed(() => {
+		return isDark.value ? 'dark' : 'light'
+	})
 
 	onMounted(() => {
 		try {
@@ -166,9 +176,11 @@
 						<el-table-column prop="pr_no" label="PR Number" sortable>
 							<template #default="data">
 								<div>
-									<el-text size="large"> {{ data.row.pr_no }} </el-text>
-									<br />
-									<el-text size="small"> {{ data.row.created_at }} </el-text>
+									<el-text class="remarks" size="small" v-if="data.row.status == 'Rejected' && data.row.remarks" type="danger"> {{ data.row.remarks }} </el-text>
+									<br v-if="data.row.status == 'Rejected' && data.row.remarks"/>
+									<el-text size="large" class="pr-no"> {{ data.row.pr_no }} </el-text>
+									<br v-if="data.row.pr_no"/>
+									<el-tag size="small" :effect="tagEffect" type="success"> {{ new Date(data.row.created_at).toDateString() }} </el-tag>
 								</div>
 							</template>
 						</el-table-column>
@@ -176,7 +188,7 @@
 							<template #default="data">
 								<el-text> {{ data.row.requested_by }} </el-text>
 								<br />
-								<el-text size="large"> {{ data.row.department }} </el-text>
+								<el-text size="small"> <i> {{ data.row.department }} </i> </el-text>
 								<br />
 								<el-text size="small"> {{ data.row.section }} </el-text>
 							</template>
@@ -234,9 +246,20 @@
 		font-weight: 400;
 	}
 
+	.pr-no {
+		font-size: 15px;
+		font-weight: 500;
+	}
+
 	.status {
 		font-weight: 600;
 		text-transform: uppercase;
+	}
+
+	.remarks {
+		font-style: italic;
+		font-weight: 400;
+		font-size: 12px;
 	}
 
 	.action-button {

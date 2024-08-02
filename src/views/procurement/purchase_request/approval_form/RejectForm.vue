@@ -27,8 +27,9 @@
 			}  
 		}
 		try{
-			await axios.put(apiEndPoint + '/api/set_approval_pr/' + props.data.id, {
-					status: 'Rejected'
+			await axios.put(`${apiEndPoint}/api/set_approval_pr/${props.data.id}`, {
+					status: 'Rejected',
+					reason: prFormData.reason
 				}).then((res) => {
 					console.log(res.data.message)
 				})

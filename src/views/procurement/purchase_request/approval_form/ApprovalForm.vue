@@ -30,7 +30,7 @@
 			}
 		}
 		try{
-			await axios.put(apiEndPoint + '/api/set_approval_pr_bac/' + props.data.id, {
+			await axios.put(`${apiEndPoint}/api/set_approval_pr_bac/${props.data.id}`, {
 					status: 'Approved',
 					pr_no: prFormData.pr_no,
 					section: prFormData.section,

@@ -1,7 +1,8 @@
 <script lang='ts' setup>
-	import { ref, onMounted, h, VNode } from 'vue'
+	import { ref, onMounted } from 'vue'
 	import { ComponentSize, FormProps, TableColumnCtx } from 'element-plus'
 	import { apiEndPoint } from '@/constant/data'
+	import { formatNumber } from '@/constant/functions'
 	import { useRouter } from 'vue-router'
 	import axios from 'axios'
 	import ItemForm from '@/views/procurement/ppmp/ppmp_item_form/ItemForm.vue'
@@ -36,14 +37,6 @@
 			showBulkUploadForm.value = true
 	}
 
-	const formatNumber = (number: Integer) => {
-		number = parseFloat(number).toFixed(2)
-		let numStr = number.toString();
-	    let parts = numStr.split(".");
-	    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-	    return parts.join(".");
-	}
-
 	const loadPpmpItemData = async () => {
 		const token = JSON.parse(localStorage.auth_token_default);
 		if(token){
@@ -53,7 +46,7 @@
 			}  
 		}
 		try {
-			await axios.get(apiEndPoint + '/api/list_of_ppmp_items/' + router.params.id + '/' + pageSize.value + '/?page=' + currentPage.value).then((res) => {
+			await axios.get(`${apiEndPoint}/api/list_of_ppmp_items/${router.params.id}/${pageSize.value}/?page=${currentPage.value}`).then((res) => {
 				listPpmpItemTableData.value = res.data.retrievedData
 				const calculateEstBudget = listPpmpItemTableData.value.reduce((acc, current) => {
 				  return acc + parseFloat(current.estimated_budget);
@@ -138,6 +131,8 @@
 		<el-skeleton animated :loading="loading">
 			<template #template>
 				<div class="custom-card">
+					<el-skeleton-item variant="button" style="width: 13%" />
+					&nbsp;
 					<el-skeleton-item variant="button" style="width: 7%" />
 				</div>
 				<el-divider />
@@ -152,148 +147,151 @@
 					<el-button type="success" @click="showForm('BulkUploadForm', router.params)"> Bulk Upload Items </el-button>
 					<el-button type="success" @click="showForm('ItemForm', null)"> Add Item </el-button>
 					<el-divider />
-					<el-table :data="listPpmpItemTableData" stripe border>
-						<el-table-column type="expand">
-							<template #default="data">
-								<el-form class="custom-form" label-width="auto" :label-position="labelPosition">
-									<el-form-item class="form-item-top-padding">
-								    	<template #label>
-									    	<el-divider>
-												<el-text class="schedule-title">
-									    			Schedule / Milestone of Activities
-									    		</el-text> 
-											</el-divider>
-								    	</template>
-								    	<el-col :span="12" class="input-area">
-								    		<el-form-item>
-								    			<template #label>
-								    				<el-text class="quarter-title" type="danger">
-								    					1st Quarter
-								    				</el-text>
-								    			</template>
-								    			<el-col :span="8" class="input-area">
-								    				<el-form-item label="January">
-												      	<el-input :value="data.row.jan" readonly />
-													</el-form-item>
-								    			</el-col>
-								    			<el-col :span="8" class="input-area">
-								    				<el-form-item label="February">
-												      	<el-input :value="data.row.feb" readonly />
-													</el-form-item>
-								    			</el-col>
-								    			<el-col :span="8">
-								    				<el-form-item label="March">
-												      	<el-input :value="data.row.mar" readonly />
-													</el-form-item>
-								    			</el-col>
-								    		</el-form-item>
-								    	</el-col>
-							    		<el-col :span="12">
-								    		<el-form-item>
-								    			<template #label>
-								    				<el-text class="quarter-title" type="danger">
-								    					2nd Quarter
-								    				</el-text>
-								    			</template>
-								    			<el-col :span="8" class="input-area">
-								    				<el-form-item label="April">
-												      	<el-input :value="data.row.apr" readonly />
-													</el-form-item>
-								    			</el-col>
-								    			<el-col :span="8" class="input-area">
-								    				<el-form-item label="May">
-												      	<el-input :value="data.row.may" readonly />
-													</el-form-item>
-								    			</el-col>
-								    			<el-col :span="8">
-								    				<el-form-item label="June">
-												      	<el-input :value="data.row.jun" readonly />
-													</el-form-item>
-								    			</el-col>
-								    		</el-form-item>
-								    	</el-col>
-							    		<el-col :span="12" class="input-area form-item-top-padding">
-								    		<el-form-item>
-								    			<template #label>
-								    				<el-text class="quarter-title" type="danger">
-								    					3rd Quarter
-								    				</el-text>
-								    			</template>
-								    			<el-col :span="8" class="input-area">
-								    				<el-form-item label="July">
-												      	<el-input :value="data.row.jul"readonly />
-													</el-form-item>
-								    			</el-col>
-								    			<el-col :span="8" class="input-area">
-								    				<el-form-item label="August">
-												      	<el-input :value="data.row.aug"readonly />
-													</el-form-item>
-								    			</el-col>
-								    			<el-col :span="8">
-								    				<el-form-item label="September">
-												      	<el-input :value="data.row.sept"readonly />
-													</el-form-item>
-								    			</el-col>
-								    		</el-form-item>
-								    	</el-col>
-							    		<el-col :span="12" class="form-item-top-padding">
-								    		<el-form-item>
-								    			<template #label>
-								    				<el-text class="quarter-title" type="danger">
-								    					4th Quarter
-								    				</el-text>
-								    			</template>
-								    			<el-col :span="8" class="input-area">
-								    				<el-form-item label="October">
-												      	<el-input :value="data.row.oct" readonly />
-													</el-form-item>
-								    			</el-col>
-								    			<el-col :span="8" class="input-area">
-								    				<el-form-item label="November">
-												      	<el-input :value="data.row.nov"readonly />
-													</el-form-item>
-								    			</el-col>
-								    			<el-col :span="8">
-								    				<el-form-item label="December">
-												      	<el-input :value="data.row.dec"readonly />
-													</el-form-item>
-								    			</el-col>
-								    		</el-form-item>
-								    	</el-col>
-								    </el-form-item>
-								</el-form>
-							</template>
-						</el-table-column>
-						<el-table-column prop="code" label="Code" sortable width="150"/>
-						<el-table-column prop="general_desc" label="Requested Item" sortable>
-							<template #default="data">
-								<el-text> {{ data.row.general_desc }} </el-text>
-								<br />
-								<el-text class="category" type="warning"> <i> {{ data.row.category }} </i> </el-text>
-							</template>
-						</el-table-column>
-						<el-table-column label="Quantity" width="120">
-							<template #default="data">
-								<el-text> {{ data.row.quantity }} {{ data.row.unit }}<span v-if="data.row.unit != null">/s</span> </el-text>
-							</template>
-						</el-table-column>
-						<el-table-column prop="mode_of_procurement" label="Mode" sortable width="100" />
-						<el-table-column label="Est. Budget" prop="estimated_budget" width="150">
-							<template #default="data">
-								<el-text> ₱ {{ formatNumber(data.row.estimated_budget) }} </el-text>
-			 				</template>
-						</el-table-column>
-						<el-table-column prop="action" label="Action" width="170">
-							<template #default="data">
-								<el-button class="action-button" type="info" @click="showForm('UpdateForm', data.row)"> Update </el-button>
-								<br />
-								<el-button class="action-button" type="danger" @click="showForm('RemoveForm', data.row)"> Remove </el-button>
-							</template>
-						</el-table-column>
-					</el-table>
-					<div class="total-card">
-						<el-text class="total"> Total : </el-text>
-						<el-text class="total number"> ₱ {{ formatNumber(totalEstimatedBudget) }} </el-text>
+					<div class="table-border">
+						<el-table :data="listPpmpItemTableData" stripe>
+							<el-table-column type="expand">
+								<template #default="data">
+									<el-form class="custom-form" label-width="auto" :label-position="labelPosition">
+								    	<el-divider>
+											<el-text class="schedule-title">
+								    			Schedule / Milestone of Activities
+								    		</el-text> 
+										</el-divider>
+										<el-form-item class="quarter-padding">
+									    	<el-col :span="12" class="input-area">
+									    		<el-form-item>
+									    			<template #label>
+									    				<el-text class="quarter-title" type="danger">
+									    					1st Quarter
+									    				</el-text>
+									    			</template>
+									    			<el-col :span="8" class="input-area">
+									    				<el-form-item label="January">
+													      	<el-input :value="data.row.jan" readonly />
+														</el-form-item>
+									    			</el-col>
+									    			<el-col :span="8" class="input-area">
+									    				<el-form-item label="February">
+													      	<el-input :value="data.row.feb" readonly />
+														</el-form-item>
+									    			</el-col>
+									    			<el-col :span="8">
+									    				<el-form-item label="March">
+													      	<el-input :value="data.row.mar" readonly />
+														</el-form-item>
+									    			</el-col>
+									    		</el-form-item>
+									    	</el-col>
+								    		<el-col :span="12">
+									    		<el-form-item>
+									    			<template #label>
+									    				<el-text class="quarter-title" type="danger">
+									    					2nd Quarter
+									    				</el-text>
+									    			</template>
+									    			<el-col :span="8" class="input-area">
+									    				<el-form-item label="April">
+													      	<el-input :value="data.row.apr" readonly />
+														</el-form-item>
+									    			</el-col>
+									    			<el-col :span="8" class="input-area">
+									    				<el-form-item label="May">
+													      	<el-input :value="data.row.may" readonly />
+														</el-form-item>
+									    			</el-col>
+									    			<el-col :span="8">
+									    				<el-form-item label="June">
+													      	<el-input :value="data.row.jun" readonly />
+														</el-form-item>
+									    			</el-col>
+									    		</el-form-item>
+									    	</el-col>
+								    		<el-col :span="12" class="input-area">
+									    		<el-form-item>
+									    			<template #label>
+									    				<el-text class="quarter-title" type="danger">
+									    					3rd Quarter
+									    				</el-text>
+									    			</template>
+									    			<el-col :span="8" class="input-area">
+									    				<el-form-item label="July">
+													      	<el-input :value="data.row.jul"readonly />
+														</el-form-item>
+									    			</el-col>
+									    			<el-col :span="8" class="input-area">
+									    				<el-form-item label="August">
+													      	<el-input :value="data.row.aug"readonly />
+														</el-form-item>
+									    			</el-col>
+									    			<el-col :span="8">
+									    				<el-form-item label="September">
+													      	<el-input :value="data.row.sept"readonly />
+														</el-form-item>
+									    			</el-col>
+									    		</el-form-item>
+									    	</el-col>
+								    		<el-col :span="12">
+									    		<el-form-item>
+									    			<template #label>
+									    				<el-text class="quarter-title" type="danger">
+									    					4th Quarter
+									    				</el-text>
+									    			</template>
+									    			<el-col :span="8" class="input-area">
+									    				<el-form-item label="October">
+													      	<el-input :value="data.row.oct" readonly />
+														</el-form-item>
+									    			</el-col>
+									    			<el-col :span="8" class="input-area">
+									    				<el-form-item label="November">
+													      	<el-input :value="data.row.nov"readonly />
+														</el-form-item>
+									    			</el-col>
+									    			<el-col :span="8">
+									    				<el-form-item label="December">
+													      	<el-input :value="data.row.dec"readonly />
+														</el-form-item>
+									    			</el-col>
+									    		</el-form-item>
+									    	</el-col>
+									    </el-form-item>
+									</el-form>
+								</template>
+							</el-table-column>
+							<el-table-column prop="code" label="Code" sortable width="150"/>
+							<el-table-column prop="general_desc" label="Requested Item" sortable>
+								<template #default="data">
+									<el-text> {{ data.row.general_desc }} </el-text>
+									<br />
+									<el-text class="category" type="warning"> <i> {{ data.row.category }} </i> </el-text>
+								</template>
+							</el-table-column>
+							<el-table-column label="Quantity" width="120">
+								<template #default="data">
+									<el-text v-if="!data.row.lumpsum"> {{ data.row.quantity }} {{ data.row.unit }}<span v-if="data.row.unit != null">/s</span> </el-text>
+									<el-text class="lumpsum" v-else>
+										Lumpsum
+									</el-text>
+								</template>
+							</el-table-column>
+							<el-table-column prop="mode_of_procurement" label="Mode" sortable width="100" />
+							<el-table-column label="Est. Budget" prop="estimated_budget" width="150">
+								<template #default="data">
+									<el-text> ₱ {{ formatNumber(data.row.estimated_budget) }} </el-text>
+				 				</template>
+							</el-table-column>
+							<el-table-column prop="action" label="Action" width="170">
+								<template #default="data">
+									<el-button class="action-button" type="info" @click="showForm('UpdateForm', data.row)"> Update </el-button>
+									<br />
+									<el-button class="action-button" type="danger" @click="showForm('RemoveForm', data.row)"> Remove </el-button>
+								</template>
+							</el-table-column>
+						</el-table>
+						<div class="total-card">
+							<el-text class="total"> Total : </el-text>
+							<el-text class="total number"> ₱ {{ formatNumber(totalEstimatedBudget) }} </el-text>
+						</div>
 					</div>
 					<el-divider />
 					<el-pagination
@@ -313,9 +311,20 @@
 </template>
 
 <style scoped>
+	.table-border {
+		margin-top: 20px;
+		border: 1px solid var(--el-border-color-light);
+	}
+	
 	.title {
 		font-size: 20px;
 		font-weight: 400;
+	}
+
+	.lumpsum {
+		font-style: italic;
+		font-weight: 400;
+		font-size: 12px;
 	}
 
 	.action-button {
@@ -329,6 +338,10 @@
 
 	.custom-form {
 		padding: 10px;
+	}
+
+	.quarter-padding {
+		margin: 0 10px;
 	}
 
 	.schedule-title {

@@ -46,7 +46,7 @@ const router = createRouter({
           component: () => import('@/views/procurement/purchase_request/ListOfPr.vue')
         },
         {
-          path: '/request_items/:id',
+          path: '/request_items/:id/:department/:requested_by/:status',
           name: 'request_items',
           meta: {
             title: 'Requested Items'

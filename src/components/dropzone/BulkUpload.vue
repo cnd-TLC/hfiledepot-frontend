@@ -16,7 +16,7 @@
 
   // dropzone
   const isDragActive = ref(false)
-  const uploadUrl = apiEndPoint + '/api/bulk_upload/'+ props.type +'/' + props.data.id
+  const uploadUrl = apiEndPoint + '/api/import_files/'+ props.type +'/' + props.data.id
   const uploadedItem = ref()
   const textColor = ref('info')
   const iconColor = ref('#909399')
@@ -34,7 +34,7 @@
   const saveFiles = (files) => {
     const formData = new FormData();
     for (let i = 0; i < files.length; i++) {
-      formData.append('attachments', files[i]);
+      formData.append('attachments[]', files[i])
     }
     // loading.value = true
     axios.post(uploadUrl, formData, {
@@ -43,7 +43,8 @@
       },
     })
     .then((res) => {
-      console.info(res.data.message);
+      console.info(res.data.message)
+      emit('fileUploaded')
     })
     .catch((err) => {
       console.error(err);
@@ -52,21 +53,21 @@
 
 
   const onDrop = (acceptedFiles, rejectedFiles) => {
-    saveFiles(acceptedFiles);
-    console.log(acceptedFiles);
-    console.log(rejectedFiles);
+    saveFiles(acceptedFiles)
+    // console.log(acceptedFiles)
+    // console.log(rejectedFiles)
   }
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     onDragEnter: () => {
-      isDragActive.value = true;
+      isDragActive.value = true
       textColor.value = 'primary'
       iconColor.value = '#409eff' 
     },
     onDragLeave: () => {
-      isDragActive.value = false;
+      isDragActive.value = false
       textColor.value = 'info'
       iconColor.value = '#909399' 
     },

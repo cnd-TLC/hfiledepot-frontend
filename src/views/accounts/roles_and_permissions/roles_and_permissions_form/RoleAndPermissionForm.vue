@@ -96,7 +96,7 @@
 		}
 		try{
 			if (formType === 'submit'){
-				await axios.post(apiEndPoint + '/api/add_roles_and_permissions', { 
+				await axios.post(`${apiEndPoint}/api/add_roles_and_permissions`, { 
 					role: rolesAndPermissionsData.role,
 					description: rolesAndPermissionsData.description,
 					role_modules: JSON.stringify(rolesAndPermissionsData.role_modules),
@@ -105,7 +105,7 @@
 				})
 			}
 			else{
-				await axios.put(apiEndPoint + '/api/update_roles_and_permissions/' + props.data.id, {
+				await axios.put(`${apiEndPoint}/api/update_roles_and_permissions/${props.data.id}`, {
 					role: rolesAndPermissionsData.role,
 					description: rolesAndPermissionsData.description,
 					role_modules: rolesAndPermissionsData.role_modules,
@@ -243,6 +243,17 @@
 							</el-checkbox-group>
 	    				</el-card>
 	    			</el-col>
+	    		</el-row>
+	    	</el-col>
+	    </el-form-item>
+    	<el-form-item>
+			<template #label>
+				<el-text class="module-title">
+					Procurement Project Management Plans
+				</el-text>
+			</template>
+    		<el-col :span="24">
+	    		<el-row>
 	    			<el-col :span="4" class="input-area">
 	    				<el-card class="custom-card" shadow="never">
 	    					<el-checkbox-group
@@ -302,26 +313,6 @@
 								<el-checkbox :value="modules.procurement.ppmp_items_catalog[3]"> Remove </el-checkbox>
 							</el-checkbox-group>
 	    				</el-card>
-	    			</el-col>
-	    		</el-row>
-	    	</el-col>
-	    </el-form-item>
-    	<el-form-item>
-			<template #label>
-				<el-text class="module-title">
-					Inventory
-				</el-text>
-			</template>
-    		<el-col :span="24">
-	    		<el-row>
-	    			<el-col :span="4" class="input-area">
-	    				<el-card />
-	    			</el-col>
-	    			<el-col :span="4" class="input-area">
-	    				<el-card />
-	    			</el-col>
-	    			<el-col :span="4">
-    					<el-card />
 	    			</el-col>
 	    		</el-row>
 	    	</el-col>

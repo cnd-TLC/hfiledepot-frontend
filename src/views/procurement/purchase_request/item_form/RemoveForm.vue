@@ -20,7 +20,7 @@
 			}  
 		}
 		try{
-			await axios.delete(apiEndPoint + '/api/remove_pr_items/' + props.data.id).then((res) => {
+			await axios.delete(`${apiEndPoint}/api/remove_pr_items/${props.data.id}`).then((res) => {
 					console.log(res.data.message)
 				})
 			removeItemButtonIsDisabled.value = true

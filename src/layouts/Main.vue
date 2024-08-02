@@ -1,15 +1,21 @@
 <script lang='ts' setup>
-	import { ref, reactive, onMounted } from 'vue'
+	import { ref, reactive, onMounted, onBeforeUnmount, watch } from 'vue'
 	import { useAuth } from 'vue-auth3'
 	import { useRouter } from 'vue-router'
-	import { Picture as IconPicture } from '@element-plus/icons-vue'
-	import { Eleme, Promotion, Operation, UserFilled, TakeawayBox } from '@element-plus/icons-vue'
+	import { Picture as IconPicture, Eleme, Promotion, Operation, UserFilled, DocumentCopy, ArrowRight, Moon, Sunny } from '@element-plus/icons-vue'
+	import { useFullscreen, useDark, useToggle } from '@vueuse/core'
 	import sorCityLogo from '/images/sorsogoncity.png'
+
+	const el = ref<HTMLElement | null>(null)
+	const { isFullscreen, enter, exit, toggle } = useFullscreen(el) || {}
 
 	const router = useRouter()
 	const auth = useAuth()
-	
+	const isDark = useDark({ disableTransition: false })
+	const toggleDark = useToggle(isDark)
 	const activeIndex = ref(router.currentRoute.value.name)
+	const setFullscreen = isFullscreen.value ? ref(true) : ref(false)
+	const darkMode = isDark.value ? ref(true) : ref(false)
 
 	let loading = ref(true)
 	let userPromise = reactive({})
@@ -22,6 +28,17 @@
 		email: '',
 		permissions: []
 	})
+
+	const handleFullscreenChange = () => {
+		setFullscreen.value = isFullscreen.value;
+	}
+
+	const addFullscreenChangeListener = () => {
+		document.addEventListener('fullscreenchange', handleFullscreenChange);
+		document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+		document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+		document.addEventListener('msfullscreenchange', handleFullscreenChange);
+	}
 
 	const checkPermission = (val: String) => {
 		return user.permissions.includes(val)
@@ -59,15 +76,39 @@
 		}
 	}
 
+	watch(darkMode, (newValue) => {
+		const containerElements = document.getElementsByClassName('el-container');
+		if (containerElements.length > 0) {
+			const container = containerElements[0];
+			container.style.backgroundColor = newValue ? '#141414' : 'white'; 
+		}
+    });
+
 	onMounted(() => {
 		getUserData()
+
+		const containerElements = document.getElementsByClassName('el-container');
+		if (containerElements.length > 0) {
+			const container = containerElements[0];
+			container.style.backgroundColor = isDark.value ? '#141414' : 'white'; 
+		}
+
+		addFullscreenChangeListener()
+	})
+
+	onBeforeUnmount(() => {
+		document.removeEventListener('fullscreenchange', handleFullscreenChange);
+		document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+		document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+		document.removeEventListener('msfullscreenchange', handleFullscreenChange);
 	})
 </script>
 
 <template>
-	<el-container 
-		v-loading="loading" 
+	<el-container
+		v-loading.fullscreen.lock="loading"
 		element-loading-text="Loading..." 
+		ref="el"	
 	>
 		<el-aside width="250px">
 			<div class="image-container">
@@ -83,7 +124,8 @@
 					</center>
 				</div>
 			</div>
-			<el-menu 
+			<el-menu
+				class="main-menu" 
 				:default-active = "activeIndex"
 				style="height: 79vh"
 				:router="true"
@@ -95,25 +137,22 @@
 				</el-menu-item>
 				<el-menu-item-group v-if="checkPermission('purchaseRequestHasView') || checkPermission('purchaseRequestApprovalHasView') || checkPermission('managePpmpHasView') || checkPermission('ppmpApprovalHasView') || checkPermission('ppmpItemsCatalogHasView')">
 					<template #title> Manage </template>
-					<el-sub-menu index="procurement">
+					<el-sub-menu index="procurement" v-if="checkPermission('purchaseRequestHasView') || checkPermission('purchaseRequestApprovalHasView')">
 						<template #title> 
 							<el-icon> <promotion /> </el-icon>
 							Procurement 
 						</template>
-						<el-menu-item v-if="checkPermission('purchaseRequestHasView')" index="/purchase_request"> Purchase Request </el-menu-item>
-						<el-menu-item v-if="checkPermission('purchaseRequestApprovalHasView')" index="/manage_purchase_request"> Purchase Request Approval </el-menu-item>
-						<el-menu-item v-if="checkPermission('managePpmpHasView')" index="/manage_ppmp"> Manage PPMP </el-menu-item>
-						<el-menu-item v-if="checkPermission('ppmpApprovalHasView')" index="/manage_ppmp_approval"> PPMP Approval </el-menu-item>
-						<el-menu-item v-if="checkPermission('ppmpItemsCatalogHasView')" index="/ppmp_items_catalog"> PPMP Items Catalog </el-menu-item>
+						<el-menu-item style="padding-left: 20px" v-if="checkPermission('purchaseRequestHasView')" index="/purchase_request"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> Purchase Request </el-menu-item>
+						<el-menu-item style="padding-left: 20px" v-if="checkPermission('purchaseRequestApprovalHasView')" index="/manage_purchase_request"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> Purchase Request Approval </el-menu-item>
 					</el-sub-menu>
-					<el-sub-menu index="inventory">
+					<el-sub-menu index="ppmp" v-if="checkPermission('managePpmpHasView') || checkPermission('ppmpApprovalHasView') || checkPermission('ppmpItemsCatalogHasView')">
 						<template #title> 
-							<el-icon><takeaway-box /></el-icon>
-							Inventory 
+							<el-icon><document-copy /></el-icon>
+							PPMP 
 						</template>
-						<el-menu-item index="procured_items"> Procured Items </el-menu-item>
-						<el-menu-item index="manage_items"> Manage Items </el-menu-item>
-						<el-menu-item index="items_for_inspection"> Items For Inspection </el-menu-item>
+						<el-menu-item style="padding-left: 20px" v-if="checkPermission('managePpmpHasView')" index="/manage_ppmp"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> Manage PPMP </el-menu-item>
+						<el-menu-item style="padding-left: 20px" v-if="checkPermission('ppmpApprovalHasView')" index="/manage_ppmp_approval"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> PPMP Approval </el-menu-item>
+						<el-menu-item style="padding-left: 20px" v-if="checkPermission('ppmpItemsCatalogHasView')" index="/ppmp_items_catalog"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> PPMP Items Catalog </el-menu-item>
 					</el-sub-menu>						
 				</el-menu-item-group>
 				<el-menu-item-group v-if="checkPermission('rolesAndPermissionsHasView') || checkPermission('systemUsersHasView')">
@@ -132,11 +171,29 @@
 		<el-container>
 			<el-header>
 				<el-menu 
+					style="align-items: center;"
 					mode = "horizontal"
 					:ellipsis = "false"
 				>
 					<div class="flex-grow" />
-					<el-sub-menu index="profile">
+					<el-switch 
+						@click="toggle" 
+						v-model="setFullscreen" 
+						active-text="Fullscreen On" 
+						inactive-text="Fullscreen Off" 
+						inline-prompt 
+						style="--el-switch-on-color: #67c23a; --el-switch-off-color: #909399"
+					/>
+					<el-switch
+						@click="toggleDark()"
+						v-model="darkMode"
+						class="mode-switch"
+						style="margin-left: 10px; --el-switch-on-color: #409EFF; --el-switch-off-color: #E6A23C"
+						inline-prompt
+						:active-icon="Moon"
+						:inactive-icon="Sunny"
+					/>
+					<el-sub-menu index="profile" v-if="!isFullscreen">
 						<template #title> {{ user.name }} </template>
 						<el-menu-item index="view_profile"> View Profile </el-menu-item>
 						<el-menu-item index="view_profile" @click="logoutSubmit"> Sign Out </el-menu-item>
@@ -151,11 +208,15 @@
 			</el-footer>
 		</el-container>
 	</el-container>
-	
 </template>
 
-<style scoped>
+<style>
+	.loading-screen {
+		height: 100vh;
+	}
+
 	.image-container {
+		padding-top: 20px;
 		border-right: solid 1px var(--el-border-color);
 	}
 
@@ -180,6 +241,7 @@
 		max-height: 120px;
 		width: 120px;
 		height: 120px;
+		margin-top: 20px;
 	}
 
 	.image-container__error .image-slot {
@@ -188,7 +250,6 @@
 		align-items: center;
 		width: 100%;
 		height: 100%;
-		background: var(--el-fill-color-light);
 		color: var(--el-text-color-secondary);
 		font-size: 30px;
 	}
@@ -204,17 +265,36 @@
 		padding: 0;
 	}
 
-	.el-main {
-		background-color: rgba(250, 250, 250, 1);
-	}
-
 	.el-footer {
+		font-style: italic;
+		font-size: 10px;
 		text-align: center;
-		padding: 20px 0 0 0;
+		padding: 25px 0 0 0;
 	}
 
-	.el-image {
-		margin-top: 20px;
-		
+	.main-menu {
+		align-items: center;
 	}
+
+	.main-menu .el-menu-item {
+		height: 45px !important;
+	}
+
+	.main-menu .el-sub-menu__title {
+		height: 45px;
+	}
+
+	.el-menu .fullscreen {
+		font-size: 12px;
+		height: 100%;
+	}
+
+	.el-menu .fullscreen:hover {
+		color: #409eff;
+	}
+
+	.mode-switch {
+		margin-right: 10px;
+	}
+	
 </style>

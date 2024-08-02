@@ -65,7 +65,7 @@
 			}  
 		}
 		try {
-			await axios.get(apiEndPoint + '/api/list_of_roles_and_permissions/' + pageSize.value + '/?page=' + currentPage.value, { 
+			await axios.get(`${apiEndPoint}/api/list_of_roles_and_permissions/${pageSize.value}/?page=${currentPage.value}`, { 
 				headers: { 
 					'Content-Type': 'multipart/form-data',
 				} 

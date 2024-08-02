@@ -20,7 +20,7 @@
 			}  
 		}
 		try{
-			await axios.delete(apiEndPoint + '/api/remove_roles_and_permissions/' + props.data.id).then((res) => {
+			await axios.delete(`${apiEndPoint}/api/remove_roles_and_permissions/${props.data.id}`).then((res) => {
 					console.log(res.data.message)
 				})
 			removeRoleButtonIsDisabled.value = true

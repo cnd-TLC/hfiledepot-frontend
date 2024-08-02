@@ -20,7 +20,7 @@
 			}  
 		}
 		try{
-			await axios.put(apiEndPoint + '/api/set_approval_pr/' + props.data.id, {
+			await axios.put(`${apiEndPoint}/api/set_approval_pr/${props.data.id}`, {
 					status: 'Approved'
 				}).then((res) => {
 					console.log(res.data.message)

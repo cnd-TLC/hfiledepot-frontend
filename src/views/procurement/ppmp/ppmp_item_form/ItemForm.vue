@@ -54,7 +54,7 @@
 			}  
 		}
 		try{
-			await axios.get(apiEndPoint + '/api/list_of_department_ppmp_items_catalog').then((res) => {
+			await axios.get(`${apiEndPoint}/api/list_of_department_ppmp_items_catalog`).then((res) => {
 				ppmpItemOptions.value = res.data.retrievedData
 			})
 		}
@@ -75,7 +75,7 @@
 			}  
 		}
 		try {
-			await axios.get(apiEndPoint + '/api/get_code/' + router.params.id).then((res) => {
+			await axios.get(`${apiEndPoint}/api/get_code/${router.params.id}`).then((res) => {
 				ppmpItemFormData.code = res.data.code
 			})
 			managePpmpItemButtonIsDisabled.value = false
@@ -102,7 +102,7 @@
 		try{
 			managePpmpItemButtonIsDisabled.value = true
 			if (formType === 'submit'){
-				await axios.post(apiEndPoint + '/api/add_ppmp_items', { 
+				await axios.post(`${apiEndPoint}/api/add_ppmp_items`, { 
 					ppmp_id: ppmpItemFormData.ppmp_id,
 					code: ppmpItemFormData.code,
 					category: ppmpItemFormData.category,
@@ -129,7 +129,7 @@
 				})
 			}
 			else{
-				await axios.put(apiEndPoint + '/api/update_ppmp_items/' + props.data.id, {
+				await axios.put(`${apiEndPoint}/api/update_ppmp_items/${props.data.id}`, {
 					ppmp_id: ppmpItemFormData.ppmp_id,
 					code: ppmpItemFormData.code,
 					category: ppmpItemFormData.category,
@@ -172,8 +172,8 @@
 			ppmpItemFormData.category = props.data.category
 			ppmpItemFormData.general_desc = props.data.general_desc
 			ppmpItemFormData.unit = props.data.unit
-			ppmpItemFormData.quantity = props.data.quantity
-			ppmpItemFormData.lumpsum = props.data.lumpsum
+			ppmpItemFormData.quantity = props.data.lumpsum ? 1 : props.data.quantity
+			ppmpItemFormData.lumpsum = props.data.lumpsum ? true : false
 			ppmpItemFormData.mode_of_procurement = props.data.mode_of_procurement
 			ppmpItemFormData.estimated_budget = props.data.estimated_budget
 			ppmpItemFormData.jan = props.data.jan
@@ -213,7 +213,7 @@
 					>
 						<el-option
 							v-for="item in ppmpItemOptions"
-							:key="item.general_desc"
+							:key="item.id"
 							:label="item.general_desc"
 							:value="item.general_desc"
 							@click="selectItem(item)"
@@ -222,7 +222,7 @@
 			    </el-form-item>
 			</el-col>
 		</el-form-item>
-	    <el-form-item>
+	    <div class="flex-area">
 	    	<el-col :span="8" class="input-area">
 		 		<el-form-item label="Category">
 		 			<el-input v-model="ppmpItemFormData.category" />
@@ -235,7 +235,8 @@
 		    </el-col>
 	    	<el-col :span="4" class="input-area">
 		 		<el-form-item label="Quantity">
-			      	<el-input-number class="full-width" v-model="ppmpItemFormData.quantity" :min="1" />
+			      	<el-input-number class="full-width" v-model="ppmpItemFormData.quantity" :min="1" :disabled="ppmpItemFormData.lumpsum" />
+			      	<el-checkbox v-model="ppmpItemFormData.lumpsum"> Lumpsum </el-checkbox>
 				</el-form-item>
 		    </el-col>
 	    	<el-col :span="4" class="input-area">
@@ -261,8 +262,8 @@
 			      	<el-input type="number" v-model="ppmpItemFormData.estimated_budget" :min="0.00" x:precision="2" :step="0.1" />
 				</el-form-item>
 		    </el-col>
-	    </el-form-item>
-	    <el-form-item class="form-item-top-padding">
+	    </div>
+	    <el-form-item>
 	    	<template #label>
 				<el-divider>
 					<el-text class="schedule-title">
@@ -381,7 +382,6 @@
 	}
 
 	.full-width {
-		display: block;
 		width: 100%;
 	}
 
@@ -393,6 +393,10 @@
 	.quarter-title {
 		font-size: 14px;
 		font-weight: 500;
+	}
+
+	.flex-area {
+		display: flex;
 	}
 
 	.input-area {

@@ -1,6 +1,7 @@
 <script lang='ts' setup>
 	import { reactive, ref } from 'vue'
 	import type { FormProps } from 'element-plus'
+	import { ElMessage } from 'element-plus'
 	import { useAuth } from 'vue-auth3'
 	import { Picture as IconPicture } from '@element-plus/icons-vue'
 	import { apiEndPoint } from '@/constant/data'
@@ -18,6 +19,9 @@
 	const auth = useAuth()
 
 	const signinSubmit = async () => {
+	  if (signInButtonIsDisabled.value) 
+	  	return;
+	  
 	  try {
 	  	signInButtonIsDisabled.value = true
 	  	await auth.login({
@@ -25,6 +29,12 @@
 	  			username: form.username,
 	  			password: form.password
 	  		},
+	  	})
+	  	.then((res) => {
+	  		ElMessage({
+				message: `Welcome, ${res.data.user.name}!`,
+				type: 'success',
+			})
 	  	})
 	  }
 	  catch (err) {
@@ -43,7 +53,7 @@
 				<el-col :span="9"> </el-col>
 				<el-col :span="7">
 					<el-form class="form" @keyup.enter="signinSubmit">
-						<div class="image-container">
+						<div class="logo-container">
 							<div class="block">
 								<center>
 									<el-image style="width: 100px; height: 100px;" :src="sorCityLogo">
@@ -70,7 +80,7 @@
 						<el-divider />
 					</el-form>
 				</el-col>
-				<el-col :span="9"> </el-col>
+				<el-col :span="8"> </el-col>
 			</el-row>
 		</el-main>
 		<!-- <el-footer>
@@ -80,7 +90,7 @@
 </template>
 
 <style scoped>
-	.image-container__error .block {
+	.logo-container__error .block {
 		padding: 30px 0;
 		text-align: center;
 		border-right: solid 1px var(--el-border-color);
@@ -89,13 +99,13 @@
 		box-sizing: border-box;
 		vertical-align: top;
 	}
-	.image-container__error .demonstration {
+	.logo-container__error .demonstration {
 		display: block;
 		color: var(--el-text-color-secondary);
 		font-size: 14px;
 		margin-bottom: 20px;
 	}
-	.image-container__error .el-image {
+	.logo-container__error .el-image {
 		padding: 0 5px;
 		max-width: 100px;
 		max-height: 100px;
@@ -103,17 +113,16 @@
 		height: 100px;
 	}
 
-	.image-container__error .image-slot {
+	.logo-container__error .image-slot {
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		width: 100%;
 		height: 100%;
-		background: var(--el-fill-color-light);
 		color: var(--el-text-color-secondary);
 		font-size: 30px;
 	}
-	.image-container__error .image-slot .el-icon {
+	.logo-container__error .image-slot .el-icon {
 		font-size: 30px;
 	}
 
@@ -121,6 +130,7 @@
 		display: block;
 		width: 100%;
 	}
+
 
 	.el-link {
 		display: flex;
@@ -159,7 +169,6 @@
 
 	.form {
 		margin: 120px 40px 0 40px ;
-		background: rgb(255, 255, 255);
 		padding: 30px 10px 20px 10px;
 		border: 1px solid var(--el-border-color);
 		border-radius: 6px;

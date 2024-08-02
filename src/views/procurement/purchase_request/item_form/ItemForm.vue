@@ -40,7 +40,7 @@
 			}  
 		}
 		try{
-			await axios.get(apiEndPoint + '/api/list_of_department_ppmp_items').then((res) => {
+			await axios.get(`${apiEndPoint}/api/list_of_department_ppmp_items`).then((res) => {
 				prItemOptions.value = res.data.retrievedData
 			})
 		}
@@ -58,12 +58,11 @@
 		prItemFormData.unit = item.unit
 		prItemFormData.category = item.category
 		prItemFormData.item_description = item.general_desc
-		prItemFormData.quantity = item.quantity
-		prItemFormData.lumpsum = item.lumpsum
+		prItemFormData.quantity = item.lumpsum ? 1 : item.quantity
+		prItemFormData.lumpsum = item.lumpsum ? true : false
 		prItemFormData.mode_of_procurement = item.mode_of_procurement
 		prItemFormData.unit_cost = item.estimated_budget
 		prItemFormData.max_cost = item.estimated_budget
-		prItemFormData.quantity = item.quantity
 		prItemFormData.max_quantity = item.quantity
 	}
 	const sendPrItemForm = async () => {
@@ -76,7 +75,7 @@
 		}
 		try{
 			sendPrItemButtonIsDisabled.value = true
-			await axios.post(apiEndPoint + '/api/add_pr_items', {
+			await axios.post(`${apiEndPoint}/api/add_pr_items`, {
 					pr_id: prItemFormData.pr_id,
 					item_no: prItemFormData.item_no,
 					unit: prItemFormData.unit,
@@ -114,7 +113,7 @@
 	    <el-form-item label="Select Item">
 	      	<el-select v-model="prItemFormData.item_description" placeholder="Select" :loading="prItemLoading" filterable>
 	      		<el-option v-for="item in prItemOptions" 
-	      			:key="item.general_desc" 
+	      			:key="item.id" 
 	      			:label="item.general_desc" 
 	      			:value="item.general_desc" 
 	      			@click="selectItem(item)"
@@ -122,7 +121,8 @@
 	      	</el-select>
 	    </el-form-item>
 	    <el-form-item label="Quantity">
-	      	<el-input-number class="full-width" v-model="prItemFormData.quantity" :max="prItemFormData.max_quantity" :min="1" />
+	      	<el-input v-if="prItemFormData.lumpsum" value="Lumpsum" readonly />
+	      	<el-input-number v-else class="full-width" v-model="prItemFormData.quantity" :max="prItemFormData.max_quantity" :min="1" />
 	    </el-form-item>
 	    <el-form-item label="Unit Cost (₱)">
 	      	<el-input type="number" v-model="prItemFormData.unit_cost" :max="prItemFormData.max_cost" :min="1"/>

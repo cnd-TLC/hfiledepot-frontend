@@ -1,7 +1,8 @@
 <script lang='ts' setup>
-	import { ref, reactive, onMounted } from 'vue'
+	import { ref, reactive, onMounted, watch } from 'vue'
 	import { useAuth } from 'vue-auth3'
-	import { ComponentSize, FormProps } from 'element-plus'
+	import { ComponentSize, FormProps, ElMessage } from 'element-plus'
+	import { Search } from '@element-plus/icons-vue'
 	import { apiEndPoint } from '@/constant/data'
 	import axios from 'axios'
 	import SystemUserForm from '@/views/accounts/system_users/system_users_form/SystemUserForm.vue'
@@ -25,6 +26,7 @@
 	let user = reactive({
 		permissions: []
 	})
+	let searchValue = ref('')
 
 	const checkPermission = (val: String) => {
 		return user.permissions.includes(val)
@@ -49,7 +51,9 @@
 			}  
 		}
 		try {
-			await axios.get(apiEndPoint + '/api/list_of_users/' + pageSize.value + '/?page=' + currentPage.value).then((res) => {
+			await axios.get(`${apiEndPoint}/api/list_of_users/${pageSize.value}/?page=${currentPage.value}`, {
+				params: { search: searchValue.value }
+			}).then((res) => {
 				listOfSystemUsers.value = res.data.retrievedData
 				totalRecords.value = res.data.total
 			})
@@ -59,7 +63,10 @@
 			showUpdateSystemUserForm.value = false
 		}
 		catch (err) {
-			console.log('Error loading data', err)
+			ElMessage({
+				message: `Cannot load sytem users: ${err.message}`,
+				type: 'error',
+			})
 		}
 	}
 
@@ -72,7 +79,10 @@
  			})
 		}
 		catch (err) {
-			console.log('Retrieving user data failed: ', err)
+			ElMessage({
+				message: `Retrieving user data failed: ${err.message}`,
+				type: 'error',
+			})
 		}
 		finally {
 			loading.value = false
@@ -86,13 +96,31 @@
 		loadSystemUsersData()
 	}
 
+	const clearSearch = () => {
+		searchValue.value = ''
+		loadSystemUsersData()
+	}
+
+	// const isEmpty = computed(() => {
+	// 	return searchValue.value.trim() === '';
+    // });
+
+    watch(searchValue, (newValue) => {
+		if (newValue.trim() === '') {
+			loadSystemUsersData()
+		}
+    });
+
 	onMounted(() => {
 		try {
 			loadSystemUsersData()
 			getUserData()
 		}
 		catch (err) {
-			console.log('Error loading data', err)
+			ElMessage({
+				message: `Error loading data: ${err.message}`,
+				type: 'error',
+			})
 		}
 	})
 </script>
@@ -116,6 +144,9 @@
 					<el-skeleton-item variant="button" style="width: 7%" />
 				</div>
 				<el-divider />
+				<div class="custom-card">
+					<el-skeleton-item variant="text" style="width: 30%" />
+				</div>
 				<el-skeleton-item v-for="n in 10" variant="text" style="width: 100%" />
 				<el-divider />
 				<div class="custom-card">
@@ -126,6 +157,18 @@
 				<div class="custom-card">
 					<el-button type="success" v-if="checkPermission('systemUsersHasAdd')" @click="showForm('SysteUserForm', null)"> Add User </el-button>
 					<el-divider />
+					<el-row>
+						<el-col :span="16" />
+						<el-col :span="8">
+							<el-container class="search-area">
+						      	<el-input v-model="searchValue" placeholder="Search" clearable @keyup.enter="loadSystemUsersData">
+						      		<template #append>
+										<el-button type="success"  @click="loadSystemUsersData" :icon="Search" />
+									</template>
+						      	</el-input>
+					      	</el-container>
+				      	</el-col>
+			      	</el-row>
 					<el-table :data="listOfSystemUsers" stripe border>
 						<el-table-column prop="id" label="ID" sortable width="120"/>
 						<el-table-column prop="name" label="Name" sortable />
@@ -203,5 +246,13 @@
 
 	.el-pagination {
 		justify-content: right;
+	}
+
+	.search-area {
+		margin-bottom: 20px;
+	}
+
+	.search-area .el-input {
+		margin-right: 5px;
 	}
 </style>

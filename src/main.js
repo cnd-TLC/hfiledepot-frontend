@@ -16,6 +16,9 @@ import { createAuth } from 'vue-auth3'
 import driverAuthBearer from 'vue-auth3/drivers/auth/bearer'
 import driverHttpAxios from 'vue-auth3/drivers/http/axios'
 
+// dark mode
+import 'element-plus/theme-chalk/dark/css-vars.css'
+
 // apex chart
 import VueApexCharts from 'vue3-apexcharts'
 
@@ -37,7 +40,7 @@ const auth = createAuth({
 	stores: ['storage', 'cookie'],
 	loginData: {
 		method: 'post',
-  		url: apiEndPoint + '/api/login',
+  		url: `${apiEndPoint}/api/login`,
   		redirect: { name: 'dashboard' },
   		staySignedIn: true,
   		fetchUser: true,
@@ -45,16 +48,21 @@ const auth = createAuth({
 	},
 	logoutData: {
   		method: 'post',
-  		url: apiEndPoint + '/api/logout',
+  		url: `${apiEndPoint}/api/logout`,
   		makeRequest: true,
   		redirect: { name: 'signin' }
   	},
 	fetchData: {
-		url: apiEndPoint + '/api/user', 
 		method: 'get',
+		url: `${apiEndPoint}/api/user`, 
 		enabled: true
 	},
-	refreshData: { enabled: true }
+	refreshData: { 
+		method: 'get',
+		url: `${apiEndPoint}/api/refresh`, 
+		interval: 1,
+		enabled: true 
+	}
 })
 
 

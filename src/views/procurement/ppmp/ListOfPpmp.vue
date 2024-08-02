@@ -1,8 +1,9 @@
 <script lang='ts' setup>
-	import { ref, reactive, onMounted } from 'vue'
+	import { ref, reactive, onMounted, computed } from 'vue'
 	import { useAuth } from 'vue-auth3'
 	import { ComponentSize } from 'element-plus'
 	import { apiEndPoint } from '@/constant/data'
+	import { useDark } from '@vueuse/core'
 	import axios from 'axios'
 	import PpmpForm from '@/views/procurement/ppmp/ppmp_form/PpmpForm.vue'
 	import PreviewForm from '@/views/procurement/ppmp/ppmp_form/PreviewForm.vue'
@@ -12,6 +13,7 @@
 
 	const router = useRouter()
 	const auth = useAuth()
+	const isDark = useDark({ disableTransition: false })
 
 	const listPpmpRequestTableData = ref([])
 	const clickedRow = ref([])
@@ -58,7 +60,7 @@
 			}  
 		}
 		try {
-			await axios.get(apiEndPoint + '/api/list_of_user_ppmp/' + pageSize.value + '/?page=' + currentPage.value).then((res) => {
+			await axios.get(`${apiEndPoint}/api/list_of_user_ppmp/${pageSize.value}/?page=${currentPage.value}`).then((res) => {
 				listPpmpRequestTableData.value = res.data.retrievedData
 				totalRecords.value = res.data.total
 			})
@@ -117,6 +119,10 @@
 		}
 	}
 
+	const tagEffect = computed(() => {
+		return isDark.value ? 'dark' : 'light'
+	})
+
 	onMounted(() => {
 		try {
 			loadPpmpData()
@@ -169,9 +175,11 @@
 					<el-table :data="listPpmpRequestTableData" stripe border>
 						<el-table-column label="Project" sortable>
 							<template #default="data">
-								<el-text> {{ data.row.title }} </el-text>
+								<el-text class="remarks" size="small" v-if="data.row.status == 'Rejected' && data.row.remarks" type="danger"> {{ data.row.remarks }} </el-text>
+								<br v-if="data.row.status == 'Rejected' && data.row.remarks"/>
+								<el-text class="project-title"> {{ data.row.title }} </el-text>
 								<br />
-								<el-text> {{ data.row.year }} </el-text>
+								<el-tag size="small" :effect="tagEffect" type="success"> {{ data.row.year }} </el-tag>
 							</template>
 						</el-table-column>
 						<el-table-column prop="pmo_end_user_dept" label="PMO End-User / Department" sortable/>
@@ -187,10 +195,10 @@
 							<template #default="data">
 								<el-button class="action-button" type="info" @click="showForm('PreviewForm',data.row)"> Preview Items </el-button>
 								<br />
-								<el-button class="action-button" v-if="checkPermission('managePpmpHasManageAttachments') && data.row.status == 'Pending'" type="info" @click="showForm('AttachmentsForm', data.row)"> Attachments </el-button>
-								<br v-if="checkPermission('managePpmpHasManageAttachments') && data.row.status == 'Pending'"/>
 								<el-button class="action-button" v-if="checkPermission('managePpmpHasManageItems') && data.row.status == 'Pending'" type="info" @click="manageItem(data.row)"> Manage Items </el-button>
 								<br v-if="checkPermission('managePpmpHasManageItems') && data.row.status == 'Pending'"/>
+								<el-button class="action-button" v-if="checkPermission('managePpmpHasManageAttachments') && data.row.status == 'Pending'" type="info" @click="showForm('AttachmentsForm', data.row)"> Attachments </el-button>
+								<br v-if="checkPermission('managePpmpHasManageAttachments') && data.row.status == 'Pending'"/>
 								<el-button class="action-button" v-if="checkPermission('managePpmpHasUpdate') && data.row.status == 'Pending'" type="info" @click="showForm('UpdateForm',data.row)"> Update </el-button>
 								<br v-if="checkPermission('managePpmpHasUpdate') && data.row.status == 'Pending'"/>
 								<el-button class="action-button" v-if="checkPermission('managePpmpHasRemove') && data.row.status == 'Pending'" type="danger" @click="showForm('RemoveForm',data.row)"> Remove </el-button>
@@ -220,9 +228,20 @@
 		font-weight: 400;
 	}
 
+	.project-title {
+		font-size: 15px;
+		font-weight: 500;
+	}
+
 	.status {
 		font-weight: 600;
 		text-transform: uppercase;
+	}
+
+	.remarks {
+		font-style: italic;
+		font-weight: 400;
+		font-size: 12px;
 	}
 
 	.action-button {

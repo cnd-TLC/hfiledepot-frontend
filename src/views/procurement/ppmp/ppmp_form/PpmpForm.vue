@@ -39,7 +39,7 @@
 		try{
 			sendPpmpButtonIsDisabled.value = true
 			if (formType === 'submit'){
-				await axios.post(apiEndPoint + '/api/add_ppmp', { 
+				await axios.post(`${apiEndPoint}/api/add_ppmp`, { 
 					year: ppmpFormData.year,
 					title: ppmpFormData.title,
 					pmo_end_user_dept: ppmpFormData.pmo_end_user_dept,
@@ -57,7 +57,7 @@
 				
 			}
 			else{
-				await axios.put(apiEndPoint + '/api/update_ppmp/' + props.data.id, {
+				await axios.put(`${apiEndPoint}/api/update_ppmp/${props.data.id}`, {
 					year: ppmpFormData.year,
 					title: ppmpFormData.title,
 					pmo_end_user_dept: ppmpFormData.pmo_end_user_dept,

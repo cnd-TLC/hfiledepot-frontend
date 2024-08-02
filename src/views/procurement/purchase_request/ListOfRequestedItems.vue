@@ -2,16 +2,19 @@
 	import { ref, onMounted } from 'vue'
 	import { ComponentSize } from 'element-plus'
 	import { apiEndPoint } from '@/constant/data'
+	import { formatNumber } from '@/constant/functions'
 	import axios from 'axios'
+	import { useRouter } from 'vue-router'
 	import ItemForm from '@/views/procurement/purchase_request/item_form/ItemForm.vue'
 	import RemoveForm from '@/views/procurement/purchase_request/item_form/RemoveForm.vue'
-	import { useRouter } from 'vue-router'
+	import BulkUploadForm from '@/components/dropzone/BulkUpload.vue'
 
 	const router = useRouter().currentRoute.value
 
 	const overallCost = ref(0)
 	const listPrItemTableData  = ref([])
 	const clickedRow = ref([])
+	const showBulkUploadForm = ref(false)
 	const showItemForm = ref(false)
 	const showRemoveForm = ref(false)
 	const totalRecords = ref(1)
@@ -26,14 +29,8 @@
 			showItemForm.value = true
 		if (formName === 'RemoveForm')
 			showRemoveForm.value = true
-	}
-
-	const formatNumber = (number: Integer) => {
-		number = parseFloat(number).toFixed(2)
-		let numStr = number.toString();
-	    let parts = numStr.split(".");
-	    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-	    return parts.join(".");
+		if (formName === 'BulkUploadForm')
+			showBulkUploadForm.value = true
 	}
 
 	const loadPrItemData = async () => {
@@ -45,16 +42,19 @@
 			}  
 		}
 		try {
-			await axios.get(apiEndPoint + '/api/list_of_pr_items/' + router.params.id + '/' + pageSize.value + '/?page=' + currentPage.value).then((res) => {
+			await axios.get(`${apiEndPoint}/api/list_of_pr_items/${router.params.id}/${pageSize.value}/?page=${currentPage.value}`).then((res) => {
 				listPrItemTableData.value = res.data.retrievedData
 				const calculateCost = listPrItemTableData.value.reduce((acc, current) => {
-				  return acc + (parseFloat(current.unit_cost) * parseInt(current.quantity));
+					if (current.lumpsum)
+						return acc + (parseFloat(current.unit_cost))
+					return acc + (parseFloat(current.unit_cost) * parseInt(current.quantity))
 				}, 0);
 				overallCost.value = calculateCost.toFixed(2)
 				totalRecords.value = res.data.total
 			})
 			showItemForm.value = false
 			showRemoveForm.value = false
+			showBulkUploadForm.value = false
 		}
 		catch (err) {
 			console.log('Error loading data', err)
@@ -88,6 +88,9 @@
 	<el-dialog destroy-on-close :overflow="false" v-model="showRemoveForm" title="Remove Item" width="400">
 		<remove-form @removeButtonIsClicked="loadPrItemData" :data="clickedRow" />
 	</el-dialog>
+	<el-dialog destroy-on-close :overflow="false" v-model="showBulkUploadForm" title="Bulk Upload" width="600">
+		<bulk-upload-form :type="'pr'" :data="clickedRow" @fileUploaded="loadPrItemData" />
+	</el-dialog>
 
 	<el-text class="title"> Requested Items List </el-text>
 
@@ -95,6 +98,8 @@
 		<el-skeleton animated :loading="loading">
 			<template #template>
 				<div class="custom-card">
+					<el-skeleton-item variant="button" style="width: 13%" />
+					&nbsp;
 					<el-skeleton-item variant="button" style="width: 7%" />
 				</div>
 				<el-divider />
@@ -106,43 +111,50 @@
 			</template>
 			<template #default>
 				<div class="custom-card">
+					<el-button type="success" @click="showForm('BulkUploadForm', router.params)"> Bulk Upload Items </el-button>
 					<el-button type="success" @click="showForm('ItemForm', null)"> Add Item </el-button>
 					<el-divider />
-					<el-table :data="listPrItemTableData" stripe border>
-						<el-table-column prop="item_no" label="Item No." sortable width="150"/>
-						<el-table-column prop="item_description" label="Item Description" sortable>
-							<template #default="data">
-								<el-text> {{ data.row.item_description }} </el-text>
-								<br />
-								<el-text class="category" type="warning"> <i> {{ data.row.category }} </i> </el-text>
-							</template>
-						</el-table-column>
-						<el-table-column prop="quantity" label="Quantity" width="120">
-							<template #default="data">
-								<el-text>
-								{{ data.row.quantity }} {{ data.row.unit }}<span v-if="data.row.unit != null">/s</span>
-								</el-text>
-							</template>
-						</el-table-column>
-						<el-table-column label="Unit Cost"  width="150">
-							<template #default="data">
-								<el-text> ₱ {{ formatNumber(data.row.unit_cost) }} </el-text>
-							</template>
-						</el-table-column>
-						<el-table-column label="Total Cost"  width="150">
-							<template #default="data">
-								<el-text> ₱ {{ formatNumber(data.row.unit_cost * data.row.quantity) }} </el-text>
-			 				</template>
-						</el-table-column>
-						<el-table-column prop="action" label="Action" width="170">
-							<template #default="data">
-								<el-button class="action-button" type="danger" @click="showForm('RemoveForm', data.row)"> Remove </el-button>
-							</template>
-						</el-table-column>
-					</el-table>
-					<div class="total-card">
-						<el-text class="total"> Total : </el-text>
-						<el-text class="total number"> ₱ {{ formatNumber(overallCost) }} </el-text>
+					<div class="table-border">
+						<el-table :data="listPrItemTableData" stripe >
+							<el-table-column prop="item_no" label="Item No." sortable width="150"/>
+							<el-table-column prop="item_description" label="Item Description" sortable>
+								<template #default="data">
+									<el-text> {{ data.row.item_description }} </el-text>
+									<br />
+									<el-text class="category" type="warning"> <i> {{ data.row.category }} </i> </el-text>
+								</template>
+							</el-table-column>
+							<el-table-column prop="quantity" label="Quantity" width="120">
+								<template #default="data">
+									<el-text v-if="!data.row.lumpsum"> {{ data.row.quantity }} {{ data.row.unit }}<span v-if="data.row.unit != null">/s</span> </el-text>
+									<el-text class="lumpsum" v-else>
+										Lumpsum
+									</el-text>
+								</template>
+							</el-table-column>
+							<el-table-column label="Unit Cost"  width="150">
+								<template #default="data">
+									<el-text> ₱ {{ formatNumber(data.row.unit_cost) }} </el-text>
+								</template>
+							</el-table-column>
+							<el-table-column label="Total Cost"  width="150">
+								<template #default="data">
+									<el-text> ₱ 
+										<span v-if="data.row.lumpsum"> {{ formatNumber(data.row.unit_cost) }} </span> 
+										<span v-else> {{ formatNumber(data.row.unit_cost * data.row.quantity) }} </span> 
+									</el-text>
+				 				</template>
+							</el-table-column>
+							<el-table-column prop="action" label="Action" width="170">
+								<template #default="data">
+									<el-button class="action-button" type="danger" @click="showForm('RemoveForm', data.row)"> Remove </el-button>
+								</template>
+							</el-table-column>
+						</el-table>
+						<div class="total-card">
+							<el-text class="total"> Total : </el-text>
+							<el-text class="total number"> ₱ {{ formatNumber(overallCost) }} </el-text>
+						</div>
 					</div>
 					<el-divider />
 					<el-pagination
@@ -162,9 +174,20 @@
 </template>
 
 <style scoped>
+	.table-border {
+		margin-top: 20px;
+		border: 1px solid var(--el-border-color-light);
+	}
+	
 	.title {
 		font-size: 20px;
 		font-weight: 400;
+	}
+
+	.lumpsum {
+		font-style: italic;
+		font-weight: 400;
+		font-size: 12px;
 	}
 
 	.category {

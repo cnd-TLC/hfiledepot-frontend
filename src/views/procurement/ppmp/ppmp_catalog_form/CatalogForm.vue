@@ -33,7 +33,7 @@
 		try{
 			managePpmpItemButtonIsDisabled.value = true
 			if (formType === 'submit'){
-				await axios.post(apiEndPoint + '/api/add_ppmp_items_catalog', { 
+				await axios.post(`${apiEndPoint}/api/add_ppmp_items_catalog`, { 
 					general_desc: ppmpItemFormData.general_desc,
 					unit: ppmpItemFormData.unit,
 					mode_of_procurement: ppmpItemFormData.mode_of_procurement,
@@ -44,7 +44,7 @@
 				})
 			}
 			else{
-				await axios.put(apiEndPoint + '/api/update_ppmp_items_catalog/' + props.data.id, {
+				await axios.put(`${apiEndPoint}/api/update_ppmp_items_catalog/${props.data.id}`, {
 					general_desc: ppmpItemFormData.general_desc,
 					unit: ppmpItemFormData.unit,
 					mode_of_procurement: ppmpItemFormData.mode_of_procurement,

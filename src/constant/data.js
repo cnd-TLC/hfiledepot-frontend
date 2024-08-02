@@ -1,5 +1,8 @@
-export const apiEndPoint = 'https://mab-solutions.online';
-// export const apiEndPoint = 'http://127.0.0.1:8000';
+	import { MoreFilled } from '@element-plus/icons-vue'
+
+
+// export const apiEndPoint = 'https://mab-solutions.online';
+export const apiEndPoint = 'http://127.0.0.1:8000';
 
 export const listPrTableData = [
 		{
@@ -57,17 +60,17 @@ export const listPrItemTableData = [
 
 export const listOfDepartments = [
 		{ label: 'City Mayor\'s Office (CMO)', value: 'City Mayor\'s Office (CMO)' },
-		{ label: 'City Administrator\'s Office (CAO)', value: 'City Administrator\'s Office (CAO)' },
-		{ label: 'City Tourism Office (CTO)', value: 'City Tourism Office (CTO)' },
+		{ label: 'City Administrator\'s Office (CAdmO)', value: 'City Administrator\'s Office (CAdmO)' },
+		{ label: 'City Tourism Office (CToO)', value: 'City Tourism Office (CToO)' },
 		{ label: 'City Planning and Development Office (CPDO)', value: 'City Planning and Development Office (CPDO)' },
 		{ label: 'City Budget Office (CBO)', value: 'City Budget Office (CBO)' },
-		{ label: 'City Accountant\'s Office (CAO)', value: 'City Accountant\'s Office (CAO)' },
+		{ label: 'City Accountant\'s Office (CAccO)', value: 'City Accountant\'s Office (CAccO)' },
 		{ label: 'City General Services Office (CGSO)', value: 'City General Services Office (CGSO)' },
 		{ label: 'City Legal Office (CLO)', value: 'City Legal Office (CLO)' },
 		{ label: 'City Human Resource Management Office (CHRMO)', value: 'City Human Resource Management Office (CHRMO)' },
 		{ label: 'City Zoning Administration Office (CZAO)', value: 'City Zoning Administration Office (CZAO)' },
 		{ label: 'City Treasurer\'s Office (CTO)', value: 'City Treasurer\'s Office (CTO)' },
-		{ label: 'City Assessor\'s Office (CAO)', value: 'City Assessor\'s Office (CAO)' },
+		{ label: 'City Assessor\'s Office (CAsO)', value: 'City Assessor\'s Office (CAsO)' },
 		{ label: 'City Civil Registrar\'s Office (CCRO)', value: 'City Civil Registrar\'s Office (CCRO)' },
 		{ label: 'City Health Office (CHO)', value: 'City Health Office (CHO)' },
 		{ label: 'City Social Welfare and Development Office (CSWDO)', value: 'City Social Welfare and Development Office (CSWDO)' },
@@ -81,13 +84,143 @@ export const listOfDepartments = [
 		{ label: 'BAPAS (BAPAS)', value: 'BAPAS (BAPAS)' },
 		{ label: 'Traffic and Security (TS)', value: 'Traffic and Security (TS)' },
 		{ label: 'Market Operations (MO)', value: 'Market Operations (MO)' },
-		{ label: 'BAC Secretary (BAC)', value: 'BAC Secretary (BAC)' },
 		{ label: 'DILG-Sorsogon City (DILG)', value: 'DILG-Sorsogon City (DILG)' },
 		{ label: 'Sangguniang Panlungsod (SP)', value: 'Sangguniang Panlungsod (SP)' },
 		{ label: 'City Information and Communications Technology Office (CICTO)', value: 'City Information and Communications Technology Office (CICTO)' },
-		{ label: 'BAC (BAC)', value: 'BAC (BAC)' }
+		{ label: 'Bids and Awards Committee (BAC)', value: 'Bids and Awards Committee (BAC)' }
 	]
 
 export const listOfPpmpCategory = [
 		{ label: 'Office Supplies', value: 'Office Supplies' },
 	]
+
+export const activities = [
+		{
+			content: 'Custom icon',
+			timestamp: '2018-04-12 20:46',
+			size: 'large',
+			type: 'primary',
+			icon: MoreFilled,
+		},
+		{
+			content: 'Custom color',
+			timestamp: '2018-04-03 20:46',
+			color: '#0bbd87',
+		},
+		{
+			content: 'Custom size',
+			timestamp: '2018-04-03 20:46',
+			size: 'large',
+		},
+		{
+			content: 'Custom hollow',
+			timestamp: '2018-04-03 20:46',
+			type: 'primary',
+			hollow: true,
+		},
+		{
+			content: 'Default node',
+			timestamp: '2018-04-03 20:46',
+		},
+		{
+			content: 'Custom icon',
+			timestamp: '2018-04-12 20:46',
+			size: 'large',
+			type: 'primary',
+			icon: MoreFilled,
+		},
+		{
+			content: 'Custom color',
+			timestamp: '2018-04-03 20:46',
+			color: '#0bbd87',
+		},
+		{
+			content: 'Custom size',
+			timestamp: '2018-04-03 20:46',
+			size: 'large',
+		},
+		{
+			content: 'Custom hollow',
+			timestamp: '2018-04-03 20:46',
+			type: 'primary',
+			hollow: true,
+		},
+		{
+			content: 'Default node',
+			timestamp: '2018-04-03 20:46',
+		},
+		{
+			content: 'Custom icon',
+			timestamp: '2018-04-12 20:46',
+			size: 'large',
+			type: 'primary',
+			icon: MoreFilled,
+		},
+		{
+			content: 'Custom color',
+			timestamp: '2018-04-03 20:46',
+			color: '#0bbd87',
+		},
+		{
+			content: 'Custom size',
+			timestamp: '2018-04-03 20:46',
+			size: 'large',
+		},
+		{
+			content: 'Custom hollow',
+			timestamp: '2018-04-03 20:46',
+			type: 'primary',
+			hollow: true,
+		},
+		{
+			content: 'Default node',
+			timestamp: '2018-04-03 20:46',
+		},
+]
+
+export const frequentlyAskedQuestions = [
+    {
+        "question": "What is a Purchase Request (PR)?",
+        "answer": "A Purchase Request (PR) is a formal request submitted by an office to procure goods or services needed for its operations."
+    },
+    {
+        "question": "What is a PPMP?",
+        "answer": "The PPMP (Project Procurement Management Plan) is a detailed plan that outlines the items needed by an office for a specific period, based on its budget and operational needs. It must be approved by the BAC (Bids and Awards Committee) before a PR can be submitted."
+    },
+    {
+        "question": "What is the purpose of the Items Catalog?",
+        "answer": "The Items Catalog is a list of approved items created by the BAC for each office. It serves as a reference for offices when preparing their PPMPs and ensures that all requested items are pre-approved and compliant with budgetary guidelines."
+    },
+    {
+        "question": "What are the steps to submit a PR?",
+        "answer": "To submit a purchase request, the BAC creates and provides the Items Catalog for each office, the office prepares and submits a PPMP using items from its specific catalog, the PPMP is reviewed and approved by the BAC, and once the PPMP is approved, the office can submit a PR for the items listed in the approved PPMP, which then goes through the approval process with Budget, Treasury, Mayor, BAC, CGSO, and Accounting."
+    },
+    {
+        "question": "Who approves the PPMP?",
+        "answer": "The PPMP is approved by the Bids and Awards Committee (BAC). This ensures that the procurement plan aligns with budgetary constraints and organizational needs."
+    },
+    {
+        "question": "What happens if the PPMP is not approved?",
+        "answer": "If the PPMP is not approved by the BAC, the office cannot submit a PR using the items on the said PPMP. The office may need to revise the PPMP based on the feedback from the BAC and resubmit it for approval."
+    },
+    {
+        "question": "How does an office know which items to include in their PPMP?",
+        "answer": "Offices should refer to their specific Items Catalog provided by the BAC. This catalog lists the items that are available for procurement and that are approved for use by the office."
+    },
+    {
+        "question": "Can an office request items not listed in the Items Catalog?",
+        "answer": "No, offices can only request items that are listed in their specific Items Catalog. Requests for items not included will not be processed."
+    },
+    {
+        "question": "What is the role of the BAC in this process?",
+        "answer": "The BAC is responsible for creating the Items Catalog, approving PPMPs, and ensuring that all procurement activities are conducted in compliance with established policies and regulations."
+    },
+    {
+        "question": "What happens after the PR is submitted?",
+        "answer": "Once the PR is submitted, it goes through a series of approvals, starting with Budget, followed by Treasury, the Mayor, BAC, CGSO, and finally Accounting. Each department reviews the request before granting approval."
+    },
+    {
+        "question": "Who can I contact for help with the process?",
+        "answer": "For assistance with the purchase request or PPMP process, please contact your office’s designated procurement officer or the BAC directly."
+    }
+]

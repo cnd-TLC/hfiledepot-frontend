@@ -20,7 +20,7 @@
 			}  
 		}
 		try{
-			await axios.delete(apiEndPoint + '/api/remove_ppmp_items_catalog/' + props.data.id).then((res) => {
+			await axios.delete(`${apiEndPoint}/api/remove_ppmp_items_catalog/${props.data.id}`).then((res) => {
 					console.log(res.data.message)
 				})
 			removeItemButtonIsDisabled.value = true

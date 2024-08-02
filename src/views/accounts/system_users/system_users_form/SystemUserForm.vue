@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 	import { reactive, ref, onMounted } from 'vue'
-	import type { FormProps, UploadUserFile } from 'element-plus'
+	import type { FormProps, UploadUserFile, ElMessage } from 'element-plus'
 	import { apiEndPoint, listOfDepartments } from '@/constant/data'
 	import axios from 'axios'
 
@@ -38,12 +38,15 @@
 			}  
 		}
 		try{
-			await axios.get(apiEndPoint + '/api/list_of_all_roles_and_permissions').then((res) => {
+			await axios.get(`${apiEndPoint}/api/list_of_all_roles_and_permissions`).then((res) => {
 				systemUserRoleOption.value = res.data.retrievedData
 			})
 		}
 		catch (err) {
-			console.log('Cannot load roles: ', err)
+			ElMessage({
+				message: `Cannot load roles: ${err.message}`,
+				type: 'error',
+			})
 		}
 		finally {
 			roleLoading.value = false
@@ -59,8 +62,9 @@
 			}  
 		}
 		try{
+			manageSystemUserButtonIsDisabled.value = true
 			if (formType === 'submit'){
-				await axios.post(apiEndPoint + '/api/add_users', { 
+				await axios.post(`${apiEndPoint}/api/add_users`, { 
 					name: systemUserFormData.name,
 					email: systemUserFormData.email,
 					username: systemUserFormData.username,
@@ -69,11 +73,15 @@
 					role: systemUserFormData.role,
 					status: systemUserFormData.status,
 				}).then((res) => {
-					console.log(res.data.message)
+					emit('manageButtonIsClicked')
+			  		ElMessage({
+						message: res.data.message,
+						type: 'success',
+					})
 				})
 			}
 			else{
-				await axios.put(apiEndPoint + '/api/update_users/' + props.data.id, {
+				await axios.put(`${apiEndPoint}/api/update_users/${props.data.id}`, {
 					name: systemUserFormData.name,
 					email: systemUserFormData.email,
 					username: systemUserFormData.username,
@@ -81,14 +89,19 @@
 					role: systemUserFormData.role,
 					status: systemUserFormData.status,
 				}).then((res) => {
-					console.log(res.data.message)
+					emit('manageButtonIsClicked')
+					ElMessage({
+						message: res.data.message,
+						type: 'success',
+					})
 				})
 			}
-			manageSystemUserButtonIsDisabled.value = true
-			emit('manageButtonIsClicked')
 		}
 		catch (err) {
-			console.log('Cannot submit form: ', err)
+			ElMessage({
+				message: `Cannot submit form: ${err.message}`,
+				type: 'error',
+			})
 		}
 		finally {
 			manageSystemUserButtonIsDisabled.value = false

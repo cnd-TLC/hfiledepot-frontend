@@ -1,8 +1,9 @@
 <script lang='ts' setup>
-	import { ref, reactive, onMounted } from 'vue'
+	import { ref, reactive, onMounted, computed } from 'vue'
 	import { useAuth } from 'vue-auth3'
 	import { ComponentSize } from 'element-plus'
 	import { apiEndPoint } from '@/constant/data'
+	import { useDark } from '@vueuse/core'
 	import axios from 'axios'
 	import ApprovalForm from '@/views/procurement/ppmp/approval_form/ApprovalForm.vue'
 	import RejectForm from '@/views/procurement/ppmp/approval_form/RejectForm.vue'
@@ -10,6 +11,7 @@
 	import AttachmentForm from '@/components/dropzone/Dropzone.vue'
 	
 	const auth = useAuth()
+	const isDark = useDark({ disableTransition: false })
 
 	const listPpmpRequestTableData = ref([])
 	const clickedRow = ref([])
@@ -53,7 +55,7 @@
 			}  
 		}
 		try {
-			await axios.get(apiEndPoint + '/api/list_of_ppmp/' + pageSize.value + '/?page=' + currentPage.value).then((res) => {
+			await axios.get(`${apiEndPoint}/api/list_of_ppmp/${pageSize.value}/?page=${currentPage.value}`).then((res) => {
 				listPpmpRequestTableData.value = res.data.retrievedData
 				totalRecords.value = res.data.total
 			})
@@ -89,6 +91,10 @@
 	const handleCurrentChange = (val: number) => {
 		loadPpmpData()
 	}
+
+	const tagEffect = computed(() => {
+		return isDark.value ? 'dark' : 'light'
+	})
 
 	onMounted(() => {
 		try {
@@ -136,9 +142,11 @@
 					<el-table :data="listPpmpRequestTableData" stripe border>
 						<el-table-column label="Project" sortable>
 							<template #default="data">
-								<el-text> {{ data.row.title }} </el-text>
+								<el-text class="remarks" size="small" v-if="data.row.status == 'Rejected' && data.row.remarks" type="danger"> {{ data.row.remarks }} </el-text>
+								<br v-if="data.row.status == 'Rejected' && data.row.remarks"/>
+								<el-text class="project-title"> {{ data.row.title }} </el-text>
 								<br />
-								<el-text> {{ data.row.year }} </el-text>
+								<el-tag size="small" :effect="tagEffect" type="success"> {{ data.row.year }} </el-tag>
 							</template>
 						</el-table-column>
 						<el-table-column prop="pmo_end_user_dept" label="PMO End-User / Department" sortable/>
@@ -186,9 +194,20 @@
 		font-weight: 400;
 	}
 
+	.project-title {
+		font-size: 15px;
+		font-weight: 500;
+	}
+
 	.status {
 		font-weight: 600;
 		text-transform: uppercase;
+	}
+
+	.remarks {
+		font-style: italic;
+		font-weight: 400;
+		font-size: 12px;
 	}
 
 	.action-button {

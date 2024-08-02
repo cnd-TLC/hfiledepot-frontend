@@ -14,7 +14,7 @@
 
 	const rejectItemButtonIsDisabled = ref(false)
 
-	const prFormData = reactive({
+	const ppmpFormData = reactive({
 		reason: '',
 	})
 
@@ -27,8 +27,9 @@
 			}  
 		}
 		try{
-			await axios.put(apiEndPoint + '/api/set_approval_ppmp/' + props.data.id, {
-					status: 'Rejected'
+			await axios.put(`${apiEndPoint}/api/set_approval_ppmp/${props.data.id}`, {
+					status: 'Rejected',
+					reason: ppmpFormData.reason
 				}).then((res) => {
 					console.log(res.data.message)
 				})
@@ -52,7 +53,7 @@
 			<template #label>
 				<el-text> Reason <i> (optional) </i></el-text>
 			</template>
-	      	<el-input v-model="prFormData.reason" :autosize="{minRows: 5}" type="textarea" />
+	      	<el-input v-model="ppmpFormData.reason" :autosize="{minRows: 5}" type="textarea" />
 	    </el-form-item>
 	    <el-button size="large" class="reject-width" type="danger" @click="rejectItemForm" :disabled="rejectItemButtonIsDisabled"> Yes </el-button> 
 	</el-form>
