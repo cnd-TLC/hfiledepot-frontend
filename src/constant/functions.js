@@ -1,6 +1,7 @@
 import { saveAs } from 'file-saver';
 import { PDFDocument } from 'pdf-lib';
 import PrTemplate from "@/assets/templates/a1geHJRFRtRExjUabVgC.dat";
+import ItemsCatalogTemplate from "@/assets/templates/k9LmNQOZpWvRbYcFsJTd.dat";
 import axios from 'axios'
 
 
@@ -23,11 +24,10 @@ export const generateRandomString = (length) => {
 }
 
 export const downloadBlob = (res) => {
-	const contentDisposition = res.headers['content-disposition']
 	let filename = generateRandomString(20)
 
 	const blob = new Blob([res.data], { type: res.headers['content-type'] })
-    saveAs(blob, filename);
+  saveAs(blob, filename);
 }
 
 export const downloadPr = async (data, items) => {
@@ -76,6 +76,22 @@ export const downloadPr = async (data, items) => {
     const blob = new Blob([pdfBytes], { type: 'application/pdf' })
     let filename = generateRandomString(20)
     saveAs(blob, filename + '-pr.pdf')
+	}
+	catch (err) {
+		console.log('Printing template error: ', err)
+	}
+}
+
+export const downloadItemsCatalogTemplate = async () => {
+	try {
+		const response = await axios.get(ItemsCatalogTemplate, { responseType: 'blob' })
+        if (response.status !== 200) 
+          throw new Error('Failed to fetch XLSX')
+
+    let filename = generateRandomString(20)
+
+		const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+		saveAs(blob, filename + '.xlsx')
 	}
 	catch (err) {
 		console.log('Printing template error: ', err)

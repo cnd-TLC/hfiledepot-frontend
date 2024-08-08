@@ -2,6 +2,7 @@
 	import { reactive, ref, onMounted } from 'vue'
 	import type { FormProps } from 'element-plus'
 	import { apiEndPoint, listOfDepartments } from '@/constant/data'
+	import { ElMessage } from 'element-plus'
 	import axios from 'axios'
 
 	const labelPosition = ref<FormProps['labelPosition']>('right')
@@ -40,7 +41,10 @@
 					year: ppmpItemFormData.year,
 					department: ppmpItemFormData.department,
 				}).then((res) => {
-					console.log(res.data.message)
+					ElMessage({
+						message: res.data.message,
+						type: 'success',
+					})
 				})
 			}
 			else{
@@ -51,13 +55,19 @@
 					year: ppmpItemFormData.year,
 					department: ppmpItemFormData.department,
 				}).then((res) => {
-					console.log(res.data.message)
+					ElMessage({
+						message: res.data.message,
+						type: 'success',
+					})
 				})
 			}
 			emit('manageButtonIsClicked')
 		}
 		catch (err) {
-			console.log('Cannot submit form: ', err)
+			ElMessage({
+				message: `Cannot submit form: ${err.message}`,
+				type: 'error',
+			})
 		}
 		finally {
 			managePpmpItemButtonIsDisabled.value = false

@@ -3,8 +3,9 @@
 	import { ComponentSize } from 'element-plus'
 	import { apiEndPoint } from '@/constant/data'
 	import { formatNumber } from '@/constant/functions'
-	import axios from 'axios'
 	import { useRouter } from 'vue-router'
+	import { downloadBlob } from '@/constant/functions'
+	import axios from 'axios'
 	import ItemForm from '@/views/procurement/purchase_request/item_form/ItemForm.vue'
 	import RemoveForm from '@/views/procurement/purchase_request/item_form/RemoveForm.vue'
 	import BulkUploadForm from '@/components/dropzone/BulkUpload.vue'
@@ -23,6 +24,16 @@
 	const size = ref<ComponentSize>('default')
 	const loading = ref(true)
 
+	const setAuthHeader = () => {
+		const token = JSON.parse(localStorage.auth_token_default);
+		if(token){
+			axios.defaults.headers = {
+				accept: "application/json",
+				Authorization: `Bearer ${token}`
+			}  
+		}
+	}
+
 	const showForm = (formName: String, data: Array) => {
 		clickedRow.value = data
 		if (formName === 'ItemForm')
@@ -34,13 +45,6 @@
 	}
 
 	const loadPrItemData = async () => {
-		const token = JSON.parse(localStorage.auth_token_default);
-		if(token){
-			axios.defaults.headers = {
-				accept: "application/json",
-				Authorization: `Bearer ${token}`
-			}  
-		}
 		try {
 			await axios.get(`${apiEndPoint}/api/list_of_pr_items/${router.params.id}/${pageSize.value}/?page=${currentPage.value}`).then((res) => {
 				listPrItemTableData.value = res.data.retrievedData
@@ -62,6 +66,15 @@
 		finally {
 			loading.value = false
 		}
+	}
+
+	const downloadPrItemsTemplate = () => {
+		setAuthHeader()
+		axios.get(`${apiEndPoint}/api/export_files/pr/${router.params.id}`, {
+		  responseType: 'blob',
+		}).then((res) => {
+			downloadBlob(res)
+		})
 	}
 
 	const handleSizeChange = (val: number) => {
@@ -100,6 +113,8 @@
 				<div class="custom-card">
 					<el-skeleton-item variant="button" style="width: 13%" />
 					&nbsp;
+					<el-skeleton-item variant="button" style="width: 13%" />
+					&nbsp;
 					<el-skeleton-item variant="button" style="width: 7%" />
 				</div>
 				<el-divider />
@@ -111,11 +126,12 @@
 			</template>
 			<template #default>
 				<div class="custom-card">
+					<el-button type="info" @click="downloadPrItemsTemplate"> Download Template </el-button>
 					<el-button type="success" @click="showForm('BulkUploadForm', router.params)"> Bulk Upload Items </el-button>
 					<el-button type="success" @click="showForm('ItemForm', null)"> Add Item </el-button>
 					<el-divider />
 					<div class="table-border">
-						<el-table :data="listPrItemTableData" stripe >
+						<el-table :data="listPrItemTableData" >
 							<el-table-column prop="item_no" label="Item No." sortable width="150"/>
 							<el-table-column prop="item_description" label="Item Description" sortable>
 								<template #default="data">
@@ -145,7 +161,7 @@
 									</el-text>
 				 				</template>
 							</el-table-column>
-							<el-table-column prop="action" label="Action" width="170">
+							<el-table-column prop="action" label="Action" width="120">
 								<template #default="data">
 									<el-button class="action-button" type="danger" @click="showForm('RemoveForm', data.row)"> Remove </el-button>
 								</template>

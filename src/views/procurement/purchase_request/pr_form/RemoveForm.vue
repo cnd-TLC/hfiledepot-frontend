@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 	import { ref } from 'vue'
 	import { apiEndPoint } from '@/constant/data'
+	import { ElMessage } from 'element-plus'
 	import axios from 'axios'
 
 	const emit = defineEmits(['removeButtonIsClicked'])
@@ -21,13 +22,19 @@
 		}
 		try{
 			await axios.delete(`${apiEndPoint}/api/remove_pr/${props.data.id}`).then((res) => {
-					console.log(res.data.message)
+					ElMessage({
+						message: res.data.message,
+						type: 'success',
+					})
 				})
 			removePrButtonIsDisabled.value = true
 			emit('removeButtonIsClicked')
 		}
 		catch (err) {
-			console.log('Cannot remove form: ', err)
+			ElMessage({
+				message: `Cannot remove: ${err.message}`,
+				type: 'error',
+			})
 		}
 		finally {
 			removePrButtonIsDisabled.value = false

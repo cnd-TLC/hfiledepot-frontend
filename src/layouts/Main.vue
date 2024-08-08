@@ -2,12 +2,12 @@
 	import { ref, reactive, onMounted, onBeforeUnmount, watch } from 'vue'
 	import { useAuth } from 'vue-auth3'
 	import { useRouter } from 'vue-router'
-	import { Picture as IconPicture, Eleme, Promotion, Operation, UserFilled, DocumentCopy, ArrowRight, Moon, Sunny } from '@element-plus/icons-vue'
+	import { Picture as IconPicture, Eleme, Promotion, Operation, UserFilled, DocumentCopy, ArrowRight, Moon, Sunny, CaretTop } from '@element-plus/icons-vue'
 	import { useFullscreen, useDark, useToggle } from '@vueuse/core'
 	import sorCityLogo from '/images/sorsogoncity.png'
 
-	const el = ref<HTMLElement | null>(null)
-	const { isFullscreen, enter, exit, toggle } = useFullscreen(el) || {}
+	const fullscreenArea = ref<HTMLElement | null>(null)
+	const { isFullscreen, enter, exit, toggle } = useFullscreen(fullscreenArea) || {}
 
 	const router = useRouter()
 	const auth = useAuth()
@@ -16,6 +16,9 @@
 	const activeIndex = ref(router.currentRoute.value.name)
 	const setFullscreen = isFullscreen.value ? ref(true) : ref(false)
 	const darkMode = isDark.value ? ref(true) : ref(false)
+	const loadingMenu = ref(false)
+
+	// console.log(router.currentRoute.value.name)
 
 	let loading = ref(true)
 	let userPromise = reactive({})
@@ -66,6 +69,7 @@
 				user.email = userPromise.email
 				user.department = userPromise.department
 				user.permissions = JSON.parse(userPromise.permissions)
+				loadingMenu.value = true
  			})
 		}
 		catch (err) {
@@ -80,9 +84,9 @@
 		const containerElements = document.getElementsByClassName('el-container');
 		if (containerElements.length > 0) {
 			const container = containerElements[0];
-			container.style.backgroundColor = newValue ? '#141414' : 'white'; 
+			container.style.backgroundColor = newValue ? '#141414' : 'white'
 		}
-    });
+    })
 
 	onMounted(() => {
 		getUserData()
@@ -108,13 +112,13 @@
 	<el-container
 		v-loading.fullscreen.lock="loading"
 		element-loading-text="Loading..." 
-		ref="el"	
+		ref="fullscreenArea"	
 	>
 		<el-aside width="250px">
 			<div class="image-container">
 				<div class="block">
-					<center>
-						<el-image style="width: 120px; height: 120px;" :src="sorCityLogo">
+					<center class="center-image">
+						<el-image :src="sorCityLogo">
 							<template #error>
 								<div class="image-slot">
 									<el-icon><icon-picture /></el-icon>
@@ -131,49 +135,83 @@
 				:router="true"
 				active-text-color="#67c23a"
 			>
-				<el-menu-item index="/dashboard" v-if="checkPermission('purchaseOrdersHasView') || checkPermission('totalSpendOnProcurementHasView')">
-					<el-icon> <eleme /> </el-icon>
-					Dashboard
-				</el-menu-item>
-				<el-menu-item-group v-if="checkPermission('purchaseRequestHasView') || checkPermission('purchaseRequestApprovalHasView') || checkPermission('managePpmpHasView') || checkPermission('ppmpApprovalHasView') || checkPermission('ppmpItemsCatalogHasView')">
-					<template #title> Manage </template>
-					<el-sub-menu index="procurement" v-if="checkPermission('purchaseRequestHasView') || checkPermission('purchaseRequestApprovalHasView')">
-						<template #title> 
-							<el-icon> <promotion /> </el-icon>
-							Procurement 
-						</template>
-						<el-menu-item style="padding-left: 20px" v-if="checkPermission('purchaseRequestHasView')" index="/purchase_request"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> Purchase Request </el-menu-item>
-						<el-menu-item style="padding-left: 20px" v-if="checkPermission('purchaseRequestApprovalHasView')" index="/manage_purchase_request"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> Purchase Request Approval </el-menu-item>
-					</el-sub-menu>
-					<el-sub-menu index="ppmp" v-if="checkPermission('managePpmpHasView') || checkPermission('ppmpApprovalHasView') || checkPermission('ppmpItemsCatalogHasView')">
-						<template #title> 
-							<el-icon><document-copy /></el-icon>
-							PPMP 
-						</template>
-						<el-menu-item style="padding-left: 20px" v-if="checkPermission('managePpmpHasView')" index="/manage_ppmp"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> Manage PPMP </el-menu-item>
-						<el-menu-item style="padding-left: 20px" v-if="checkPermission('ppmpApprovalHasView')" index="/manage_ppmp_approval"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> PPMP Approval </el-menu-item>
-						<el-menu-item style="padding-left: 20px" v-if="checkPermission('ppmpItemsCatalogHasView')" index="/ppmp_items_catalog"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> PPMP Items Catalog </el-menu-item>
-					</el-sub-menu>						
-				</el-menu-item-group>
-				<el-menu-item-group v-if="checkPermission('rolesAndPermissionsHasView') || checkPermission('systemUsersHasView')">
-					<template #title> Accounts </template>
-					<el-menu-item v-if="checkPermission('rolesAndPermissionsHasView')" index="/system_users" > 
-						<el-icon> <user-filled /> </el-icon>
-						System Users 
-					</el-menu-item>
-					<el-menu-item v-if="checkPermission('systemUsersHasView')" index="/roles_and_permissions"> 
-						<el-icon> <operation /> </el-icon>
-						Roles & Permissions 
-					</el-menu-item>
-				</el-menu-item-group>
+				<el-skeleton animated :loading="!loadingMenu">
+					<template #template>
+						<div class="menu-skeleton">
+							<el-skeleton-item variant="text" style="width: 100%" class="menu-content" />
+							<el-skeleton-item variant="text" style="width: 20%" class="menu-sub-content" />
+							<el-skeleton-item variant="text" style="width: 100%" class="menu-content" />
+							<el-skeleton-item variant="text" style="width: 100%" class="menu-content" />
+							<el-skeleton-item variant="text" style="width: 20%" class="menu-sub-content" />
+							<el-skeleton-item variant="text" style="width: 100%" class="menu-content" />
+							<el-skeleton-item variant="text" style="width: 100%" class="menu-content" />
+						</div>
+					</template>
+					<template #default>
+						<el-menu-item index="/dashboard" v-if="checkPermission('purchaseOrdersHasView') || checkPermission('totalSpendOnProcurementHasView')">
+							<el-icon> <eleme /> </el-icon>
+							Dashboard
+						</el-menu-item>
+						<el-menu-item-group v-if="checkPermission('purchaseRequestHasView') || checkPermission('purchaseRequestApprovalHasView') || checkPermission('managePpmpHasView') || checkPermission('ppmpApprovalHasView') || checkPermission('ppmpItemsCatalogHasView')">
+							<template #title> Manage </template>
+							<el-sub-menu index="procurement" v-if="checkPermission('purchaseRequestHasView') || checkPermission('purchaseRequestApprovalHasView')">
+								<template #title> 
+									<el-icon> <promotion /> </el-icon>
+									Procurement 
+								</template>
+								<el-menu-item style="padding-left: 20px" v-if="checkPermission('purchaseRequestHasView')" index="/purchase_request"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> Purchase Request </el-menu-item>
+								<el-menu-item style="padding-left: 20px" v-if="checkPermission('purchaseRequestApprovalHasView')" index="/manage_purchase_request"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> Purchase Request Approval </el-menu-item>
+							</el-sub-menu>
+							<el-sub-menu index="ppmp" v-if="checkPermission('managePpmpHasView') || checkPermission('ppmpApprovalHasView') || checkPermission('ppmpItemsCatalogHasView')">
+								<template #title> 
+									<el-icon><document-copy /></el-icon>
+									PPMP 
+								</template>
+								<el-menu-item style="padding-left: 20px" v-if="checkPermission('managePpmpHasView')" index="/manage_ppmp"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> Manage PPMP </el-menu-item>
+								<el-menu-item style="padding-left: 20px" v-if="checkPermission('ppmpApprovalHasView')" index="/manage_ppmp_approval"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> PPMP Approval </el-menu-item>
+								<el-menu-item style="padding-left: 20px" v-if="checkPermission('ppmpItemsCatalogHasView')" index="/ppmp_items_catalog"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> PPMP Items Catalog </el-menu-item>
+							</el-sub-menu>						
+						</el-menu-item-group>
+						<el-menu-item-group v-if="checkPermission('rolesAndPermissionsHasView') || checkPermission('systemUsersHasView')">
+							<template #title> Accounts </template>
+							<el-menu-item v-if="checkPermission('rolesAndPermissionsHasView')" index="/system_users" > 
+								<el-icon> <user-filled /> </el-icon>
+								System Users 
+							</el-menu-item>
+							<el-menu-item v-if="checkPermission('systemUsersHasView')" index="/roles_and_permissions"> 
+								<el-icon> <operation /> </el-icon>
+								Roles & Permissions 
+							</el-menu-item>
+						</el-menu-item-group>
+					</template>
+				</el-skeleton>
 			</el-menu>
 		</el-aside>
 		<el-container>
+			<el-backtop>
+				<div
+			      style="
+			        height: 100%;
+			        width: 100%;
+			        background-color: rgba(255, 255, 255, 0);
+			        text-align: center;
+			        line-height: 40px;
+			        color: #529b2e;
+			      "
+			    >
+			    	<el-icon>
+						<caret-top />
+					</el-icon>
+			    </div>
+			</el-backtop>
 			<el-header>
 				<el-menu 
 					style="align-items: center;"
+					:default-active = "activeIndex"
 					mode = "horizontal"
+					:router="true"
 					:ellipsis = "false"
+					active-text-color="#303133"
 				>
 					<div class="flex-grow" />
 					<el-switch 
@@ -193,16 +231,16 @@
 						:active-icon="Moon"
 						:inactive-icon="Sunny"
 					/>
-					<el-sub-menu index="profile" v-if="!isFullscreen">
+					<el-sub-menu index="profile_dropdown" v-if="!isFullscreen">
 						<template #title> {{ user.name }} </template>
-						<el-menu-item index="view_profile"> View Profile </el-menu-item>
-						<el-menu-item index="view_profile" @click="logoutSubmit"> Sign Out </el-menu-item>
+						<el-menu-item index="/profile"> View Profile </el-menu-item>
+						<el-menu-item @click="logoutSubmit()"> Sign Out </el-menu-item>
 					</el-sub-menu>
 				</el-menu>
 			</el-header>
-				<el-main>
-					<router-view />
-				</el-main>
+			<el-main>
+				<router-view @updateUserInfo="getUserData" />
+			</el-main>
 			<el-footer> 
 				COPYRIGHT © 2024 HFILE Depot, All rights Reserved
 			</el-footer>
@@ -217,13 +255,11 @@
 
 	.image-container {
 		padding-top: 20px;
-		border-right: solid 1px var(--el-border-color);
 	}
 
 	.image-container__error .block {
 		padding: 30px 0;
 		text-align: center;
-		border-right: solid 1px var(--el-border-color);
 		display: inline-block;
 		width: 49%;
 		box-sizing: border-box;
@@ -235,6 +271,7 @@
 		font-size: 14px;
 		margin-bottom: 20px;
 	}
+
 	.image-container__error .el-image {
 		padding: 0 5px;
 		max-width: 120px;
@@ -242,6 +279,15 @@
 		width: 120px;
 		height: 120px;
 		margin-top: 20px;
+	}
+
+	.el-image {
+		width: 120px; 
+		height: 120px;
+	}
+
+	.center-image {
+		margin-left: 10px;
 	}
 
 	.image-container__error .image-slot {
@@ -272,12 +318,21 @@
 		padding: 25px 0 0 0;
 	}
 
+	.el-aside {
+		border-right: solid 1px var(--el-border-color);
+	}
+
 	.main-menu {
 		align-items: center;
+		border-right: 0;
 	}
 
 	.main-menu .el-menu-item {
 		height: 45px !important;
+	}
+
+	.el-menu-item:hover {
+		color: #67c23a !important;
 	}
 
 	.main-menu .el-sub-menu__title {
@@ -286,7 +341,7 @@
 
 	.el-menu .fullscreen {
 		font-size: 12px;
-		height: 100%;
+		height: auto;
 	}
 
 	.el-menu .fullscreen:hover {
@@ -295,6 +350,29 @@
 
 	.mode-switch {
 		margin-right: 10px;
+	}
+
+	.el-loading-spinner .path, .el-loading-spinner .el-loading-text {
+		stroke: #529b2e;
+		color: #529b2e;
+	}
+
+	.menu-skeleton {
+		padding: 20px;
+	}
+
+	.menu-content {
+		padding: 12px 0;
+		margin-bottom: 10px;
+	}
+
+	.menu-sub-content {
+		padding: 5px 0;
+		margin-bottom: 10px;
+	}
+
+	.el-radio-button__inner:hover {
+		color: #67c23a;
 	}
 	
 </style>

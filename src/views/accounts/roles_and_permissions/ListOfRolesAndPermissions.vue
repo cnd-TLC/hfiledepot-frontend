@@ -1,8 +1,9 @@
 <script lang='ts' setup>
-	import { ref, reactive, onMounted } from 'vue'
+	import { ref, reactive, onMounted, watch } from 'vue'
 	import { useAuth } from 'vue-auth3'
 	import { ComponentSize, FormProps } from 'element-plus'
 	import { apiEndPoint } from '@/constant/data'
+	import { Search, ArrowDown, Refresh, Delete } from '@element-plus/icons-vue'
 	import axios from 'axios'
 	import RoleAndPermissionForm from '@/views/accounts/roles_and_permissions/roles_and_permissions_form/RoleAndPermissionForm.vue'
 	import RemoveForm from '@/views/accounts/roles_and_permissions/roles_and_permissions_form/RemoveForm.vue'
@@ -25,6 +26,7 @@
 	let user = reactive({
 		permissions: []
 	})
+	let searchValue = ref('')
 
 	const checkPermission = (val: String) => {
 		return user.permissions.includes(val)
@@ -68,7 +70,8 @@
 			await axios.get(`${apiEndPoint}/api/list_of_roles_and_permissions/${pageSize.value}/?page=${currentPage.value}`, { 
 				headers: { 
 					'Content-Type': 'multipart/form-data',
-				} 
+				},
+				params: { search: searchValue.value }
 			}).then((res) => {
 				listOfRolesAndPermissions.value = res.data.retrievedData
 				totalRecords.value = res.data.total
@@ -84,11 +87,24 @@
 	}
 
 	const handleSizeChange = (val: number) => {
+		searchValue.value = ''
 		loadRolesAndPermissionsData()
 	}
 	const handleCurrentChange = (val: number) => {
+		searchValue.value = ''
 		loadRolesAndPermissionsData()
 	}
+
+	const clearSearch = () => {
+		searchValue.value = ''
+		loadRolesAndPermissionsData()
+	}
+
+	watch(searchValue, (newValue) => {
+		if (newValue.trim() === '') {
+			loadRolesAndPermissionsData()
+		}
+    })
 
 	onMounted(() => {
 		try {
@@ -103,13 +119,13 @@
 
 <template>
 	<el-dialog destroy-on-close :overflow="false" v-model="showRoleAndPermissionForm" title="Role and Permissions" width="95%">
-		<role-and-permission-form @manageButtonIsClicked="loadRolesAndPermissionsData" />
+		<role-and-permission-form @manageButtonIsClicked="loadRolesAndPermissionsData(), searchValue = ''" />
 	</el-dialog>
 	<el-dialog destroy-on-close :overflow="false" v-model="showUpdateRoleForm" title="Role and Permissions" width="95%">
-		<role-and-permission-form @manageButtonIsClicked="loadRolesAndPermissionsData" :data="clickedRow" :update="true" />
+		<role-and-permission-form @manageButtonIsClicked="loadRolesAndPermissionsData(), searchValue = ''" :data="clickedRow" :update="true" />
 	</el-dialog>
 	<el-dialog destroy-on-close :overflow="false" v-model="showRemoveForm" title="Remove Role" width="400">
-		<remove-form @removeButtonIsClicked="loadRolesAndPermissionsData" :data="clickedRow" />
+		<remove-form @removeButtonIsClicked="loadRolesAndPermissionsData(), searchValue = ''" :data="clickedRow" />
 	</el-dialog>
 
 	<el-text class="title"> Roles and Permissions </el-text>
@@ -120,6 +136,9 @@
 					<el-skeleton-item variant="button" style="width: 7%" />
 				</div>
 				<el-divider />
+				<div class="custom-card">
+					<el-skeleton-item variant="text" style="width: 30%" />
+				</div>
 				<el-skeleton-item v-for="n in 10" variant="text" style="width: 100%" />
 				<el-divider />
 				<div class="custom-card">
@@ -130,15 +149,35 @@
 				<div class="custom-card">
 					<el-button type="success" v-if="checkPermission('rolesAndPermissionsHasAdd')" @click="showForm('RoleAndPermissionForm', null)"> Add Role </el-button>
 					<el-divider />
-					<el-table :data="listOfRolesAndPermissions" stripe border>
+					<el-row>
+						<el-col :span="16" />
+						<el-col :span="8">
+							<el-container class="search-area">
+						      	<el-input v-model="searchValue" placeholder="Search" clearable @keyup.enter="loadRolesAndPermissionsData">
+						      		<template #append>
+										<el-button type="success"  @click="loadRolesAndPermissionsData" :icon="Search" />
+									</template>
+						      	</el-input>
+					      	</el-container>
+				      	</el-col>
+			      	</el-row>
+					<el-table :data="listOfRolesAndPermissions" border>
 						<el-table-column prop="role" label="Role Name" sortable width="170" />
 						<el-table-column prop="description" label="Description" />
-						<el-table-column prop="action" v-if="checkPermission('rolesAndPermissionsHasUpdate') || checkPermission('rolesAndPermissionsHasDelete')" label="Action" width="170">
+						<el-table-column prop="action" v-if="checkPermission('rolesAndPermissionsHasUpdate') || checkPermission('rolesAndPermissionsHasDelete')" label="Action" width="120">
 							<template #default="data">
-								<el-button class="action-button" v-if="checkPermission('rolesAndPermissionsHasUpdate') && data.row.role != 'Admin'" type="info" @click="showForm('UpdateForm', data.row)"> Update </el-button>
-								<br v-if="checkPermission('rolesAndPermissionsHasUpdate') && data.row.role != 'Admin'"/>
-								<el-button class="action-button" v-if="checkPermission('rolesAndPermissionsHasRemove') && data.row.role != 'Admin'" type="danger" @click="showForm('RemoveForm', data.row)"> Remove </el-button>
-								<el-text v-if="data.row.role == 'Admin'" type="info"> <i> Cannot take action for this role </i> </el-text>
+								<center v-if="data.row.role == 'Admin'" class="n-a"> N/A </center>
+								<el-dropdown trigger="click" v-else>
+									<el-button type="info">
+										Action &nbsp; <el-icon><arrow-down /></el-icon>
+	  								</el-button>
+									<template #dropdown>
+										<el-dropdown-menu>
+											<el-dropdown-item class="action-button" v-if="checkPermission('rolesAndPermissionsHasUpdate')" @click="showForm('UpdateForm', data.row)"> <el-icon><Refresh /></el-icon> Update </el-dropdown-item>
+											<el-dropdown-item class="action-button" v-if="checkPermission('rolesAndPermissionsHasRemove')" @click="showForm('RemoveForm', data.row)"> <el-text type="danger"> <el-icon><Delete /></el-icon> Remove </el-text> </el-dropdown-item>
+										</el-dropdown-menu>
+									</template>
+								</el-dropdown>
 							</template>
 						</el-table-column>
 					</el-table>
@@ -163,6 +202,11 @@
 	.title {
 		font-size: 20px;
 		font-weight: 400;
+	}
+
+	.n-a {
+		font-size: 10px;
+		font-style: italic;
 	}
 
 	.action-button {
@@ -194,5 +238,9 @@
 
 	.el-pagination {
 		justify-content: right;
+	}
+
+	.search-area {
+		margin-bottom: 20px;
 	}
 </style>

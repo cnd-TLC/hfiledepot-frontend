@@ -4,6 +4,8 @@
 	import { apiEndPoint } from '@/constant/data'
 	import { formatNumber } from '@/constant/functions'
 	import { useRouter } from 'vue-router'
+	import { ArrowDown, Refresh, Delete } from '@element-plus/icons-vue'
+	import { downloadBlob } from '@/constant/functions'
 	import axios from 'axios'
 	import ItemForm from '@/views/procurement/ppmp/ppmp_item_form/ItemForm.vue'
 	import RemoveForm from '@/views/procurement/ppmp/ppmp_item_form/RemoveForm.vue'
@@ -25,6 +27,16 @@
 	const size = ref<ComponentSize>('default')
 	const loading = ref(true)
 
+	const setAuthHeader = () => {
+		const token = JSON.parse(localStorage.auth_token_default);
+		if(token){
+			axios.defaults.headers = {
+				accept: "application/json",
+				Authorization: `Bearer ${token}`
+			}  
+		}
+	}
+
 	const showForm = (formName: string, data: Array) => {
 		clickedRow.value = data
 		if (formName === 'ItemForm')
@@ -38,13 +50,7 @@
 	}
 
 	const loadPpmpItemData = async () => {
-		const token = JSON.parse(localStorage.auth_token_default);
-		if(token){
-			axios.defaults.headers = {
-				accept: "application/json",
-				Authorization: `Bearer ${token}`
-			}  
-		}
+		setAuthHeader()
 		try {
 			await axios.get(`${apiEndPoint}/api/list_of_ppmp_items/${router.params.id}/${pageSize.value}/?page=${currentPage.value}`).then((res) => {
 				listPpmpItemTableData.value = res.data.retrievedData
@@ -66,6 +72,15 @@
 		finally {
 			loading.value = false
 		}
+	}
+
+	const downloadPpmpItemsTemplate = () => {
+		setAuthHeader()
+		axios.get(`${apiEndPoint}/api/export_files/ppmp/${router.params.id}`, {
+		  responseType: 'blob',
+		}).then((res) => {
+			downloadBlob(res)
+		})
 	}
 
 	const handleSizeChange = (val: number) => {
@@ -133,6 +148,8 @@
 				<div class="custom-card">
 					<el-skeleton-item variant="button" style="width: 13%" />
 					&nbsp;
+					<el-skeleton-item variant="button" style="width: 13%" />
+					&nbsp;
 					<el-skeleton-item variant="button" style="width: 7%" />
 				</div>
 				<el-divider />
@@ -144,11 +161,12 @@
 			</template>
 			<template #default>
 				<div class="custom-card">
+					<el-button type="info" @click="downloadPpmpItemsTemplate"> Download Template </el-button>
 					<el-button type="success" @click="showForm('BulkUploadForm', router.params)"> Bulk Upload Items </el-button>
 					<el-button type="success" @click="showForm('ItemForm', null)"> Add Item </el-button>
 					<el-divider />
 					<div class="table-border">
-						<el-table :data="listPpmpItemTableData" stripe>
+						<el-table :data="listPpmpItemTableData">
 							<el-table-column type="expand">
 								<template #default="data">
 									<el-form class="custom-form" label-width="auto" :label-position="labelPosition">
@@ -280,11 +298,19 @@
 									<el-text> ₱ {{ formatNumber(data.row.estimated_budget) }} </el-text>
 				 				</template>
 							</el-table-column>
-							<el-table-column prop="action" label="Action" width="170">
+							<el-table-column prop="action" label="Action" width="120">
 								<template #default="data">
-									<el-button class="action-button" type="info" @click="showForm('UpdateForm', data.row)"> Update </el-button>
-									<br />
-									<el-button class="action-button" type="danger" @click="showForm('RemoveForm', data.row)"> Remove </el-button>
+									<el-dropdown trigger="click">
+										<el-button type="info">
+											Action &nbsp; <el-icon><arrow-down /></el-icon>
+		  								</el-button>
+										<template #dropdown>
+											<el-dropdown-menu>
+												<el-dropdown-item type="info" @click="showForm('UpdateForm', data.row)"> <el-icon><Refresh /></el-icon> Update </el-dropdown-item>
+												<el-dropdown-item type="danger" @click="showForm('RemoveForm', data.row)"> <el-text type="danger"> <el-icon><Delete /></el-icon> Remove </el-text> </el-dropdown-item>
+											</el-dropdown-menu>
+										</template>
+									</el-dropdown>
 								</template>
 							</el-table-column>
 						</el-table>
@@ -325,11 +351,6 @@
 		font-style: italic;
 		font-weight: 400;
 		font-size: 12px;
-	}
-
-	.action-button {
-		width: 100%;
-		margin-bottom: 3px;
 	}
 
 	.custom-card {

@@ -22,6 +22,10 @@ import 'element-plus/theme-chalk/dark/css-vars.css'
 // apex chart
 import VueApexCharts from 'vue3-apexcharts'
 
+
+// font awesome
+import '@fortawesome/fontawesome-free/css/all.css';
+
 // api endpoint
 import { apiEndPoint } from '@/constant/data'
 
@@ -72,6 +76,9 @@ const app = createApp(App)
 app.config.warnHandler = function (msg, vm, trace) {
 	if (msg.includes('Failed to resolve component: center')) {
 		return;
+	}
+	if (msg.includes('Extraneous non-emits event listeners (updateUserInfo) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the')) {
+		return ;
 	}
 	console.warn(msg, vm, trace);
 }

@@ -2,8 +2,9 @@
 	import { reactive, ref, onMounted } from 'vue'
 	import type { FormProps, UploadUserFile } from 'element-plus'
 	import { apiEndPoint } from '@/constant/data'
-	import axios from 'axios'
+	import { ElMessage } from 'element-plus'
 	import { useRouter } from 'vue-router'
+	import axios from 'axios'
 
 	const router = useRouter().currentRoute.value
 
@@ -31,7 +32,7 @@
 
 	const sendPrItemButtonIsDisabled = ref(false)
 
-	const getItems = async () => {
+	const setAuthHeader = () => {
 		const token = JSON.parse(localStorage.auth_token_default);
 		if(token){
 			axios.defaults.headers = {
@@ -39,13 +40,21 @@
 				Authorization: `Bearer ${token}`
 			}  
 		}
+	}
+
+	const getItems = async () => {
+		setAuthHeader()
+
 		try{
 			await axios.get(`${apiEndPoint}/api/list_of_department_ppmp_items`).then((res) => {
 				prItemOptions.value = res.data.retrievedData
 			})
 		}
 		catch (err) {
-			console.log('Cannot load roles: ', err)
+			ElMessage({
+				message: `Cannot submit form: ${err.message}`,
+				type: 'error',
+			})
 		}
 		finally {
 			prItemLoading.value = false
@@ -66,13 +75,8 @@
 		prItemFormData.max_quantity = item.quantity
 	}
 	const sendPrItemForm = async () => {
-		const token = JSON.parse(localStorage.auth_token_default);
-		if(token){
-			axios.defaults.headers = {
-				accept: "application/json",
-				Authorization: `Bearer ${token}`
-			}  
-		}
+		setAuthHeader()
+		
 		try{
 			sendPrItemButtonIsDisabled.value = true
 			await axios.post(`${apiEndPoint}/api/add_pr_items`, {
@@ -88,12 +92,18 @@
 					remarks: prItemFormData.remarks,
 					quantity: prItemFormData.quantity,
 				}).then((res) => {
-					console.log(res.data.message)
+					ElMessage({
+						message: res.data.message,
+						type: 'success',
+					})
 				})
 			emit('addButtonIsClicked')
 		}
 		catch (err) {
-			console.log('Cannot submit form: ', err)
+			ElMessage({
+				message: `Cannot submit form: ${err.message}`,
+				type: 'error',
+			})
 		}
 		finally {
 			sendPrItemButtonIsDisabled.value = false

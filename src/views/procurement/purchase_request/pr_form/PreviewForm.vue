@@ -6,6 +6,7 @@
 	import { apiEndPoint } from '@/constant/data'
 	import { formatNumber, downloadBlob, downloadPr } from '@/constant/functions'
 	import { PDFDocument } from 'pdf-lib';
+	import { ElMessage } from 'element-plus'
 	import axios from 'axios'
 
 	const labelPosition = ref<FormProps['labelPosition']>('top')
@@ -116,7 +117,10 @@
 			})
 		}
 		catch (err) {
-			console.log('Error loading data', err)
+			ElMessage({
+				message: `Error loading data: ${err.message}`,
+				type: 'error',
+			})
 		}
 		finally {
 			loading.value = false
@@ -129,7 +133,10 @@
 			downloadPr(prFormData, listPrItemTableData)
 		}
 		catch (err) {
-			console.log('Cannot print form: ', err)
+			ElMessage({
+				message: `Cannot print form: ${err.message}`,
+				type: 'error',
+			})
 		}
 		finally {
 			printPrButtonIsDisabled.value = false
@@ -178,7 +185,10 @@
 			loadPrItemData()
 		}
 		catch (err) {
-			console.log('Error loading data', err)
+			ElMessage({
+				message: `Error loading data: ${err.message}`,
+				type: 'error',
+			})
 		}
 	})
 </script>

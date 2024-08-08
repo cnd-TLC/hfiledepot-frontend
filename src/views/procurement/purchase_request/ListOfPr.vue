@@ -1,10 +1,11 @@
 <script lang='ts' setup>
-	import { ref, reactive, onMounted, computed } from 'vue'
+	import { ref, reactive, onMounted, computed, watch } from 'vue'
 	import { useAuth } from 'vue-auth3'
 	import { ComponentSize } from 'element-plus'
 	import { apiEndPoint } from '@/constant/data'
 	import { useDark } from '@vueuse/core'
 	import { useRouter } from 'vue-router'
+	import { Search, ArrowDown, View, Document, Files, Refresh, Delete } from '@element-plus/icons-vue'
 	import axios from 'axios'
 	import PrForm from '@/views/procurement/purchase_request/pr_form/PrForm.vue'
 	import PreviewForm from '@/views/procurement/purchase_request/pr_form/PreviewForm.vue'
@@ -33,6 +34,7 @@
 	let user = reactive({
 		permissions: []
 	})
+	let searchValue = ref('')
 
 	const checkPermission = (val: String) => {
 		return user.permissions.includes(val)
@@ -61,7 +63,9 @@
 			}  
 		}
 		try {
-			await axios.get(`${apiEndPoint}/api/list_of_user_pr/${pageSize.value}/?page=${currentPage.value}`).then((res) => {
+			await axios.get(`${apiEndPoint}/api/list_of_user_pr/${pageSize.value}/?page=${currentPage.value}`, {
+					params: { search: searchValue.value }
+				}).then((res) => {
 				listPrTableData.value = res.data.retrievedData
 				totalRecords.value = res.data.total
 			})
@@ -97,9 +101,16 @@
 	}
 
 	const handleSizeChange = (val: number) => {
+		searchValue.value = ''
 		loadPrData()
 	}
 	const handleCurrentChange = (val: number) => {
+		searchValue.value = ''
+		loadPrData()
+	}
+
+	const clearSearch = () => {
+		searchValue.value = ''
 		loadPrData()
 	}
 
@@ -125,6 +136,12 @@
 		return isDark.value ? 'dark' : 'light'
 	})
 
+	watch(searchValue, (newValue) => {
+		if (newValue.trim() === '') {
+			loadPrData()
+		}
+    })
+
 	onMounted(() => {
 		try {
 			loadPrData()
@@ -141,16 +158,16 @@
 		<preview-form :data="clickedRow" />
 	</el-dialog>
 	<el-dialog destroy-on-close :overflow="false" v-model="showAttachmentsForm" title="PR Attachments" width="600">
-		<attachment-form :type="'pr'" :data="clickedRow" @attachmentUpdated="loadPrData" />
+		<attachment-form :type="'pr'" :data="clickedRow" @attachmentUpdated="loadPrData(), searhValue = ''" />
 	</el-dialog>
 	<el-dialog destroy-on-close :overflow="false" v-model="showPrForm" title="PR Form" width="400">
 		<pr-form />
 	</el-dialog>
 	<el-dialog destroy-on-close :overflow="false" v-model="showUpdateForm" title="PR Form" width="400">
-		<pr-form :update="true" @updateButtonIsClicked="loadPrData" :data="clickedRow" />
+		<pr-form :update="true" @updateButtonIsClicked="loadPrData(), searhValue = ''" :data="clickedRow" />
 	</el-dialog>
 	<el-dialog destroy-on-close :overflow="false" v-model="showRemoveForm" title="Remove Purchase Request" width="400">
-		<remove-form @removeButtonIsClicked="loadPrData" :data="clickedRow" />
+		<remove-form @removeButtonIsClicked="loadPrData(), searhValue = ''" :data="clickedRow" />
 	</el-dialog>
 
 	<el-text class="title"> Purchase Requests </el-text>
@@ -162,6 +179,9 @@
 					<el-skeleton-item variant="button" style="width: 17%" />
 				</div>
 				<el-divider />
+				<div class="custom-card">
+					<el-skeleton-item variant="text" style="width: 30%" />
+				</div>
 				<el-skeleton-item v-for="n in 10" variant="text" style="width: 100%" />
 				<el-divider />
 				<div class="custom-card">
@@ -172,8 +192,20 @@
 				<div class="custom-card">
 					<el-button type="success" v-if="checkPermission('purchaseRequestHasSend')" @click="showForm('PrForm', null)"> Send Purchase Request </el-button>
 					<el-divider />
-					<el-table :data="listPrTableData" stripe border>
-						<el-table-column prop="pr_no" label="PR Number" sortable>
+					<el-row>
+						<el-col :span="16" />
+						<el-col :span="8">
+							<el-container class="search-area">
+						      	<el-input v-model="searchValue" placeholder="Search" clearable @keyup.enter="loadPrData">
+						      		<template #append>
+										<el-button type="success"  @click="loadPrData" :icon="Search" />
+									</template>
+						      	</el-input>
+					      	</el-container>
+				      	</el-col>
+			      	</el-row>
+					<el-table :data="listPrTableData" border>
+						<el-table-column prop="pr_no" label-class-name="table-header" label="PR Number" sortable>
 							<template #default="data">
 								<div>
 									<el-text class="remarks" size="small" v-if="data.row.status == 'Rejected' && data.row.remarks" type="danger"> {{ data.row.remarks }} </el-text>
@@ -194,11 +226,17 @@
 							</template>
 						</el-table-column>
 						<!-- <el-table-column prop="cash_availability" label="Cash Availability" /> -->
-						<el-table-column prop="fpp" label="FPP" />
+						<el-table-column prop="fpp" label="FPP">
+							<template #default="data">
+								<span v-if="data.row.fpp"> {{ data.row.fpp }}</span>
+								<center v-else class="n-a"> N/A </center>
+							</template>
+						</el-table-column>
 						<el-table-column prop="fund" label="Fund" sortable>
 							<template #default="data">
 								<!-- ₱  -->
-								<el-text size="large"> {{ data.row.fund }} </el-text>
+								<span v-if="data.row.fund"> {{ data.row.fund }}</span>
+								<center v-else class="n-a"> N/A </center>
 							</template>
 						</el-table-column>
 
@@ -209,17 +247,22 @@
 								<el-text class="status" size="small" v-if="data.row.status == 'Rejected'" type="danger"> {{ data.row.status }} </el-text>
 							</template>
 						</el-table-column>
-						<el-table-column prop="action" label="Action" width="170">
+						<el-table-column prop="action" label="Action" width="120">
 							<template #default="data">
-								<el-button class="action-button" type="info" @click="showForm('PreviewForm', data.row)"> Preview </el-button>
-								<br />
-								<el-button class="action-button" v-if="checkPermission('purchaseRequestHasRequestItems') && data.row.approved_by_cbo_name == null" type="info" @click="requestItem(data.row)"> Request Items </el-button>
-								<br v-if="checkPermission('purchaseRequestHasRequestItems') && data.row.approved_by_cbo_name == null"/>
-								<el-button class="action-button" v-if="checkPermission('purchaseRequestHasManageAttachments') && data.row.approved_by_cbo_name == null" type="info" @click="showForm('AttachmentsForm', data.row)"> Attachments </el-button>
-								<br v-if="checkPermission('purchaseRequestHasManageAttachments') && data.row.approved_by_cbo_name == null"/>
-								<el-button class="action-button" v-if="checkPermission('purchaseRequestHasUpdate') && data.row.approved_by_cbo_name == null" type="info" @click="showForm('UpdateForm', data.row)"> Update </el-button>
-								<br v-if="checkPermission('purchaseRequestHasUpdate') && data.row.approved_by_cbo_name == null"/>
-								<el-button class="action-button" v-if="checkPermission('purchaseRequestHasRemove') && data.row.approved_by_cbo_name == null" type="danger" @click="showForm('RemoveForm', data.row)"> Remove </el-button>
+								<el-dropdown trigger="click">
+									<el-button type="info">
+										Action &nbsp; <el-icon><arrow-down /></el-icon>
+      								</el-button>
+									<template #dropdown>
+									<el-dropdown-menu>
+										<el-dropdown-item @click="showForm('PreviewForm', data.row)"> <el-icon><View /></el-icon> Preview </el-dropdown-item>
+										<el-dropdown-item v-if="checkPermission('purchaseRequestHasRequestItems') && data.row.approved_by_cbo_name == null" @click="requestItem(data.row)"> <el-icon><Document /></el-icon> Request Items </el-dropdown-item>
+										<el-dropdown-item v-if="checkPermission('purchaseRequestHasManageAttachments') && data.row.approved_by_cbo_name == null" @click="showForm('AttachmentsForm', data.row)"> <el-icon><Files /></el-icon> Attachments </el-dropdown-item>
+										<el-dropdown-item v-if="checkPermission('purchaseRequestHasUpdate') && data.row.approved_by_cbo_name == null" @click="showForm('UpdateForm', data.row)"> <el-icon><Refresh /></el-icon> Update </el-dropdown-item>
+										<el-dropdown-item v-if="checkPermission('purchaseRequestHasRemove') && data.row.approved_by_cbo_name == null" @click="showForm('RemoveForm', data.row)"> <el-text type="danger"> <el-icon><Delete /></el-icon> Remove </el-text> </el-dropdown-item>
+									</el-dropdown-menu>
+									</template>
+      							</el-dropdown>
 							</template>
 						</el-table-column>
 					</el-table>
@@ -251,6 +294,11 @@
 		font-weight: 500;
 	}
 
+	.n-a {
+		font-size: 10px;
+		font-style: italic;
+	}
+
 	.status {
 		font-weight: 600;
 		text-transform: uppercase;
@@ -260,11 +308,6 @@
 		font-style: italic;
 		font-weight: 400;
 		font-size: 12px;
-	}
-
-	.action-button {
-		width: 100%;
-		margin-bottom: 3px;
 	}
 
 	.custom-card {
@@ -277,5 +320,9 @@
 
 	.el-pagination {
 		justify-content: right;
+	}
+
+	.search-area {
+		margin-bottom: 20px;
 	}
 </style>

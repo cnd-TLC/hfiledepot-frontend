@@ -1,7 +1,7 @@
 @import './base.css';
 
 #app {
-  max-width: 1920px;
+  max-width: 4000px;
   margin: 0 auto;
 /*  padding: 2rem;*/
   font-weight: normal;
@@ -15,22 +15,44 @@ a,
   padding: 3px;
 }
 
+.el-dialog {
+  margin-top: 5vh !important;
+}
+
+.el-menu--horizontal>.el-sub-menu.is-active .el-sub-menu__title {
+  border-bottom: 0 !important;
+}
+
+.el-dropdown-menu__item:not(.is-disabled):focus, 
+.el-dropdown-menu__item:not(.is-disabled):hover, 
+.el-select-dropdown__item.is-selected,
+.el-menu--horizontal>.el-sub-menu:hover .el-sub-menu__title {
+  color: #67C23A !important;
+}
+
+.el-input__wrapper.is-focus, .el-textarea__inner:focus, .el-select__wrapper.is-focused {
+  box-shadow: 0 0 0 1px #67C23A inset !important;
+}
+
+.el-checkbox__label {
+  font-weight: normal !important;
+}
+
 @media (hover: hover) {
   a:hover {
     background-color: hsla(160, 100%, 37%, 0.2);
   }
 }
-/*
-@media (min-width: 1920px) {
+
+@media (min-width: 4000px) {
   body {
     display: flex;
     place-items: center;
   }
 
   #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    padding: 0 2rem !important;
   }
 }
-*/

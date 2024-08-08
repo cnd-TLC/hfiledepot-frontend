@@ -4,6 +4,7 @@
   import { apiEndPoint } from '@/constant/data'
   import { generateRandomString, downloadBlob } from '@/constant/functions'
   import { UploadFilled, Close, Document } from '@element-plus/icons-vue'
+  import { ElMessage } from 'element-plus'
   import axios from 'axios'
 
   const emit = defineEmits(['attachmentUpdated'])
@@ -49,7 +50,10 @@
       },
     })
     .then((res) => {
-      console.info(res.data.message)
+      ElMessage({
+        message: res.data.message,
+        type: res.data.status,
+      })
       fetchUploadedItems()
     })
     .catch((err) => {
@@ -60,7 +64,10 @@
   const removeFile = (index) => {
     loading.value = true
     axios.delete(deleteUrl + uploadedItems.value[index]).then((res) => {
-      console.log(res.data.message)
+      ElMessage({
+        message: res.data.message,
+        type: res.data.status,
+      })
       fetchUploadedItems()
     })
   }

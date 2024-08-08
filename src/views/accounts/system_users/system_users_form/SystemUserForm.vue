@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 	import { reactive, ref, onMounted } from 'vue'
-	import type { FormProps, UploadUserFile, ElMessage } from 'element-plus'
+	import type { FormProps, UploadUserFile } from 'element-plus'
+	import { ElMessage } from 'element-plus'
 	import { apiEndPoint, listOfDepartments } from '@/constant/data'
 	import axios from 'axios'
 
-	const labelPosition = ref<FormProps['labelPosition']>('right')
+	const labelPosition = ref<FormProps['labelPosition']>('top')
 	const emit = defineEmits(['manageButtonIsClicked'])
 
 	const props = defineProps({
@@ -29,7 +30,7 @@
 
 	const manageSystemUserButtonIsDisabled = ref(false)
 
-	const getRoles = async () => {
+	const setAuthHeader = () => {
 		const token = JSON.parse(localStorage.auth_token_default);
 		if(token){
 			axios.defaults.headers = {
@@ -37,6 +38,10 @@
 				Authorization: `Bearer ${token}`
 			}  
 		}
+	}
+
+	const getRoles = async () => {
+		setAuthHeader()
 		try{
 			await axios.get(`${apiEndPoint}/api/list_of_all_roles_and_permissions`).then((res) => {
 				systemUserRoleOption.value = res.data.retrievedData
@@ -54,13 +59,7 @@
 	}
 
 	const manageSystemUserForm = async (formType: String) => {
-		const token = JSON.parse(localStorage.auth_token_default);
-		if(token){
-			axios.defaults.headers = {
-				accept: "application/json",
-				Authorization: `Bearer ${token}`
-			}  
-		}
+		setAuthHeader()
 		try{
 			manageSystemUserButtonIsDisabled.value = true
 			if (formType === 'submit'){
@@ -135,18 +134,18 @@
  		<el-form-item label="Password" v-if="!props.update">
 	      	<el-input v-model="systemUserFormData.password" type="password" show-password />
  		</el-form-item>
-	    <el-form-item label="Select Department">
+	    <el-form-item label="Department">
 	      	<el-select v-model="systemUserFormData.department" placeholder="Select" filterable>
 	      		<el-option v-for="option in listOfDepartments" :key="option.value.id" :label="option.label" :value="option.value" />
 	      	</el-select>
 	    </el-form-item>
-	    <el-form-item label="Select Role">
+	    <el-form-item label="Role">
 	      	<el-select v-model="systemUserFormData.role" placeholder="Select" :loading="roleLoading" filterable>
 	      		<el-option v-for="option in systemUserRoleOption" :key="option.role" :label="option.role" :value="option.role" />
 	      	</el-select>
 	    </el-form-item>
 	    <el-form-item label="Account Status">
-	      	<el-radio-group v-model="systemUserFormData.status">
+	      	<el-radio-group v-model="systemUserFormData.status" fill="#67c23a">
 				<el-radio-button label="Active" value="Active" />
 				<el-radio-button label="Inactive" value="Inactive" />
 			</el-radio-group>

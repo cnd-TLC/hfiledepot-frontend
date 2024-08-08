@@ -4,6 +4,7 @@
 	import type { FormProps } from 'element-plus'
 	import { useRouter } from 'vue-router'
 	import { apiEndPoint } from '@/constant/data'
+	import { ElMessage } from 'element-plus'
 	import axios from 'axios'
 
 	const router = useRouter()
@@ -45,7 +46,10 @@
 					pmo_end_user_dept: ppmpFormData.pmo_end_user_dept,
 					source_of_funds: ppmpFormData.source_of_funds,
 				}).then((res) => {
-					console.log(res.data.message)
+					ElMessage({
+						message: res.data.message,
+						type: 'success',
+					})
 					router.push({ name: 'manage_ppmp_items', params: { 
 						id: res.data.id, 
 						year: ppmpFormData.year, 
@@ -63,13 +67,19 @@
 					pmo_end_user_dept: ppmpFormData.pmo_end_user_dept,
 					source_of_funds: ppmpFormData.source_of_funds,
 				}).then((res) => {
-					console.log(res.data.message)
+					ElMessage({
+						message: res.data.message,
+						type: 'success',
+					})
 				})
 				emit('updateButtonIsClicked')
 			}
 		}
 		catch (err) {
-			console.log('Cannot submit form: ', err)
+			ElMessage({
+				message: `Cannot submit form: ${err.message}`,
+				type: 'error',
+			})
 		}
 		finally {
 			sendPpmpButtonIsDisabled.value = false
@@ -86,7 +96,10 @@
  			sendPpmpButtonIsDisabled.value = false
 		}
 		catch (err) {
-			console.log('Retrieving user data failed: ', err)
+			ElMessage({
+				message: `Retrieving user data failed: ${err.message}`,
+				type: 'error',
+			})
 		}
 	}
 

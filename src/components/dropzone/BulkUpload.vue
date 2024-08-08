@@ -3,6 +3,7 @@
   import { useDropzone } from 'vue3-dropzone'
   import { apiEndPoint } from '@/constant/data'
   import { UploadFilled } from '@element-plus/icons-vue'
+  import { ElMessage } from 'element-plus'
   import axios from 'axios'
 
   const emit = defineEmits(['fileUploaded'])
@@ -43,11 +44,17 @@
       },
     })
     .then((res) => {
-      console.info(res.data.message)
+      ElMessage({
+        message: res.data.message,
+        type: 'success',
+      })
       emit('fileUploaded')
     })
     .catch((err) => {
-      console.error(err);
+      ElMessage({
+        message: `Cannot reject: ${err.message}`,
+        type: 'error',
+      })
     });
   }
 

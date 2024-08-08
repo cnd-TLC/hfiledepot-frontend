@@ -2,6 +2,7 @@
 	import { reactive, ref, onMounted } from 'vue'
 	import type { FormProps } from 'element-plus'
 	import { apiEndPoint } from '@/constant/data'
+	import { ElMessage } from 'element-plus'
 	import axios from 'axios'
 	
 	const labelPosition = ref<FormProps['labelPosition']>('top')
@@ -101,7 +102,10 @@
 					description: rolesAndPermissionsData.description,
 					role_modules: JSON.stringify(rolesAndPermissionsData.role_modules),
 				}).then((res) => {
-					console.log(res.data.message)
+					ElMessage({
+						message: res.data.message,
+						type: 'success',
+					})
 				})
 			}
 			else{
@@ -110,14 +114,20 @@
 					description: rolesAndPermissionsData.description,
 					role_modules: rolesAndPermissionsData.role_modules,
 				}).then((res) => {
-					console.log(res.data.message)
+					ElMessage({
+						message: res.data.message,
+						type: 'success',
+					})
 				})
 			}
 			manageRolesAndPermissionButtonIsDisabled.value = true
 			emit('manageButtonIsClicked')
 		}
 		catch (err) {
-			console.log('Cannot submit form: ', err)
+			ElMessage({
+				message: `Cannot submit form: ${err.message}`,
+				type: 'error',
+			})
 		}
 		finally {
 			manageRolesAndPermissionButtonIsDisabled.value = false

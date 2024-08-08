@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 	import { ref } from 'vue'
 	import { apiEndPoint } from '@/constant/data'
+	import { ElMessage } from 'element-plus'
 	import axios from 'axios'
 
 	const emit = defineEmits(['approveButtonIsClicked'])
@@ -23,14 +24,20 @@
 			await axios.put(`${apiEndPoint}/api/set_approval_pr/${props.data.id}`, {
 					status: 'Approved'
 				}).then((res) => {
-					console.log(res.data.message)
+					ElMessage({
+						message: res.data.message,
+						type: 'success',
+					})
 				})
 
 			approveItemButtonIsDisabled.value = true
 			emit('approveButtonIsClicked')
 		}
 		catch (err) {
-			console.log('Cannot approve form: ', err)
+			ElMessage({
+				message: `Cannot approve: ${err.message}`,
+				type: 'error',
+			})
 		}
 		finally {
 			approveItemButtonIsDisabled.value = false

@@ -1,17 +1,21 @@
-<script setup>
+<script lang='ts' setup>
 	import { ref, onMounted } from 'vue'
-	import { DocumentChecked, DocumentDelete, Promotion, InfoFilled } from '@element-plus/icons-vue'
+	import { useTransition } from '@vueuse/core'
+	import { DocumentChecked, DocumentDelete, Promotion, Check, Close } from '@element-plus/icons-vue'
 	import { activities, apiEndPoint, frequentlyAskedQuestions } from '@/constant/data'
-	import totalApprovedRequests from '@/components/charts/TotalApprovedRequests.vue'
-	import totalRequestsPerOffice from '@/components/charts/TotalRequestsPerOffice.vue'
+	import apexChartTotalApprovedRequests from '@/components/charts/ApexChartTotalApprovedRequests.vue'
+	import apexChartTotalRequestsPerOffice from '@/components/charts/ApexChartTotalRequestsPerOffice.vue'
 	import axios from 'axios'
-
 
 	const approvedRequestChartKey = ref(0)
 	const officeRequestChartKey = ref(0)
 	const pending_count = ref(0)
+	const pending_overall_count = ref(0)
 	const approved_count = ref(0)
+	const approved_overall_count = ref(0)
 	const rejected_count = ref(0)
+	const rejected_overall_count = ref(0)
+	const notifications = ref([])
 	const cbo_pending = ref([])
 	const cto_pending = ref([])
 	const cmo_pending = ref([])
@@ -19,11 +23,9 @@
 	const cgso_pending = ref([])
 	const cao_pending = ref([])
 	const requestingOffices = ref(Array(29).fill(0)) 
-	const loadingPending = ref(false)
-	const loadingApproved = ref(false)
-	const loadingRejected = ref(false)
 	const loadingApprovalRating = ref(false)
 	const loadingOfficeRequests = ref(false)
+	const loadingTimeline = ref(false)
 	const selectedYear = ref(new Date())
 
 	const reloadApprovedRequestChart = () => {
@@ -34,7 +36,19 @@
 		officeRequestChartKey.value += 1; 
 	}
 
-	const getRequestsForApproval = () => {
+	const pendingValue = useTransition(pending_count, {
+		duration: 1500,
+	})
+
+	const approvedValue = useTransition(approved_count, {
+		duration: 1500,
+	})
+
+	const rejectedValue = useTransition(rejected_count, {
+		duration: 1500,
+	})
+
+	const setAuthHeader = () => {
 		const token = JSON.parse(localStorage.auth_token_default);
 		if(token){
 			axios.defaults.headers = {
@@ -42,6 +56,10 @@
 				Authorization: `Bearer ${token}`
 			}  
 		}
+	}
+
+	const getRequestsForApproval = () => {
+		setAuthHeader()
 		try {
 			axios.get(`${apiEndPoint}/api/requests_for_approval/${selectedYear.value.getFullYear()}`).then((res) => {
 				cbo_pending.value = res.data.cbo_pending
@@ -60,15 +78,11 @@
 	}
 
 	const getOfficeRequests = () => {
-		const token = JSON.parse(localStorage.auth_token_default);
-		if(token){
-			axios.defaults.headers = {
-				accept: "application/json",
-				Authorization: `Bearer ${token}`
-			}  
-		}
+		setAuthHeader()
 		try {
 			axios.get(`${apiEndPoint}/api/requests_per_office/${selectedYear.value.getFullYear()}`).then((res) => {
+	        	requestingOffices.value.fill(0) 
+
 				for (const office in res.data.retrievedData) {
 					switch (office) {
 				        case 'City Mayor\'s Office (CMO)':
@@ -172,46 +186,58 @@
 		}
 	}
 
+	const parsePercentage = (number, overall) => {
+		const precisionNumber = ((number / overall) * 100).toPrecision(2)
+		return Number(precisionNumber).toLocaleString('en-US', { maximumFractionDigits: 0 })
+	}
+
 	const getDepartmentRequestscount = () => {
-		const token = JSON.parse(localStorage.auth_token_default);
-		if(token){
-			axios.defaults.headers = {
-				accept: "application/json",
-				Authorization: `Bearer ${token}`
-			}  
-		}
+		setAuthHeader()
 		try {
 			axios.get(`${apiEndPoint}/api/department_requests_count/Pending/${selectedYear.value.getFullYear()}`).then((res) => {
 				pending_count.value = res.data.count
-				loadingPending.value = true
+				pending_overall_count.value = res.data.overall ? parsePercentage(pending_count.value, res.data.overall) : 0
 			})
 			axios.get(`${apiEndPoint}/api/department_requests_count/Approved/${selectedYear.value.getFullYear()}`).then((res) => {
 				approved_count.value = res.data.count
-				loadingApproved.value = true
+				approved_overall_count.value = res.data.overall ? parsePercentage(approved_count.value, res.data.overall) : 0
 			})
 			axios.get(`${apiEndPoint}/api/department_requests_count/Rejected/${selectedYear.value.getFullYear()}`).then((res) => {
-				loadingRejected.value = true
 				rejected_count.value = res.data.count
+				rejected_overall_count.value = res.data.overall ? parsePercentage(rejected_count.value, res.data.overall) : 0
 			})
 		}
 		catch (err) {
-			console.log('Error loading data', err)
+			console.log('Error loading data: ', err)
+		}
+	}
+
+	const getNotifications = () => {
+		setAuthHeader()
+		try {
+			axios.get(`${apiEndPoint}/api/notifications/${selectedYear.value.getFullYear()}`).then((res) => {
+				notifications.value = res.data.retrievedData
+				loadingTimeline.value = true
+			})
+		}
+		catch (err) {
+			console.log('Error loading data: ', err)
 		}
 	}
 
 	const selectYear = () => {
-		loadingPending.value = false
-		loadingApproved.value = false
-		loadingRejected.value = false
 		loadingApprovalRating.value = false
 		loadingOfficeRequests.value = false
+		loadingTimeline.value = false
 		getDepartmentRequestscount()
 		getRequestsForApproval()
 		getOfficeRequests()
+		getNotifications()
 	}
 
 	onMounted(() => {
 		getDepartmentRequestscount()
+		getNotifications()
 		getRequestsForApproval()
 		getOfficeRequests()
 	})
@@ -237,20 +263,22 @@
 					<el-card shadow="never">
 						<div class="summary-area">
 							<div>
-								<el-skeleton animated :loading="!loadingPending">
-									<template #template>
-										<el-skeleton-item variant="text" style="width: 50%; height: 26px" />
-									</template>
-									<template #default>
-										<el-text class="summary-content" type="info">
-											{{ pending_count }}
-										</el-text>
-									</template>
-								</el-skeleton>
+								<el-text class="dashboard-card-title"> Pending Requests </el-text>
 								<br />
-								<el-text class="dashboard-card-title" type="info"> Pending Requests </el-text>
+								<el-text class="summary-content">
+									{{ Math.floor(pendingValue) }}
+								</el-text>
+								<br />
+								<div class="statistic-footer">
+						          <div class="footer-item">
+						            <el-text :type="pending_overall_count > 3 ? 'success' : 'danger'">
+						              {{ pending_overall_count }}%
+						            </el-text>
+						            <span class="overall-text"> of overall </span>
+						          </div>
+						        </div>
 							</div>
-							<el-icon><promotion :color="'#909399'" /></el-icon>
+							<!-- <el-icon><promotion :color="'#909399'" /></el-icon> -->
 						</div>
 					</el-card>
 				</el-col>
@@ -258,20 +286,22 @@
 					<el-card shadow="never" >
 						<div class="summary-area">
 							<div>
-								<el-skeleton animated :loading="!loadingApproved">
-									<template #template>
-										<el-skeleton-item variant="text" style="width: 50%; height: 26px" />
-									</template>
-									<template #default>
-										<el-text class="summary-content" type="success">
-											{{ approved_count }}
-										</el-text>
-									</template>
-								</el-skeleton>
+								<el-text class="dashboard-card-title"> Approved Requests </el-text>
 								<br />
-								<el-text class="dashboard-card-title" type="success"> Approved Requests </el-text>
+								<el-text class="summary-content">
+									{{ Math.floor(approvedValue) }}
+								</el-text>
+								<br />
+								<div class="statistic-footer">
+						          <div class="footer-item">
+						            <el-text :type="approved_overall_count > 3 ? 'success' : 'danger'">
+						              {{ approved_overall_count }}%
+						            </el-text>
+						            <span class="overall-text"> of overall </span>
+						          </div>
+						        </div>
 							</div>
-							<el-icon><document-checked :color="'#67C23A'" /></el-icon>
+							<!-- <el-icon><document-checked :color="'#67C23A'" /></el-icon> -->
 						</div>
 					</el-card>
 				</el-col>
@@ -279,20 +309,22 @@
 					<el-card shadow="never">
 						<div class="summary-area">
 							<div>
-								<el-skeleton animated :loading="!loadingRejected">
-									<template #template>
-										<el-skeleton-item variant="text" style="width: 50%; height: 26px" class="summary-content"/>
-									</template>
-									<template #default>
-										<el-text class="summary-content" type="danger">
-											{{ rejected_count }}
-										</el-text>
-									</template>
-								</el-skeleton>
+								<el-text class="dashboard-card-title"> Rejected Requests </el-text>
 								<br />
-								<el-text class="dashboard-card-title" type="danger"> Rejected Requests </el-text>
+								<el-text class="summary-content">
+									{{ Math.floor(rejectedValue) }}
+								</el-text>
+								<br />
+								<div class="statistic-footer">
+						          <div class="footer-item">
+						            <el-text :type="rejected_overall_count > 3 ? 'success' : 'danger'">
+						              {{ rejected_overall_count }}%
+						            </el-text>
+						            <span class="overall-text"> of overall </span>
+						          </div>
+						        </div>
 							</div>
-							<el-icon><document-delete :color="'#F56C6C'" /></el-icon>
+							<!-- <el-icon><document-delete :color="'#F56C6C'" /></el-icon> -->
 						</div>
 					</el-card>
 				</el-col>
@@ -302,10 +334,10 @@
 						<br />
 						<el-skeleton animated :loading="!loadingApprovalRating">
 							<template #template>
-								<el-skeleton-item variant="text" v-for="n in 10" style="width: 100%" class="summary-content"/>
+								<el-skeleton-item variant="text" v-for="n in 10" style="width: 100%"/>
 							</template>
 							<template #default>
-								<total-approved-requests :key="approvedRequestChartKey" :data="[cbo_pending, cto_pending, cmo_pending, bac_pending, cgso_pending, cao_pending]" />
+								<apex-chart-total-approved-requests :key="approvedRequestChartKey" :data="[cbo_pending, cto_pending, cmo_pending, bac_pending, cgso_pending, cao_pending]" />
 							</template>
 						</el-skeleton>
 					</el-card>
@@ -316,10 +348,10 @@
 						<br />
 						<el-skeleton animated :loading="!loadingOfficeRequests">
 							<template #template>
-								<el-skeleton-item variant="text" v-for="n in 10" style="width: 100%" class="summary-content"/>
+								<el-skeleton-item variant="text" v-for="n in 10" style="width: 100%"/>
 							</template>
 							<template #default>
-								<total-requests-per-office :key="approvedRequestChartKey" :data="requestingOffices" />
+								<apex-chart-total-requests-per-office :key="officeRequestChartKey" :data="requestingOffices" />
 							</template>
 						</el-skeleton>
 					</el-card>
@@ -330,22 +362,27 @@
 			<el-col :span="24" >
 				<el-card shadow="never">
 					<el-text class="timeline-faq-card-title"> Request Status Timeline </el-text>
-					<el-scrollbar class="scrollbar">
-						<el-timeline class="timeline">
-							<el-timeline-item
-								v-for="(activity, index) in activities"
-								:key="index"
-								:icon="activity.icon"
-								:type="activity.type"
-								:color="activity.color"
-								:size="activity.size"
-								:hollow="activity.hollow"
-								:timestamp="activity.timestamp"
-							>
-							{{ activity.content }}
-							</el-timeline-item>
-						</el-timeline>
-					</el-scrollbar>
+					<el-skeleton animated :loading="!loadingTimeline">
+						<template #template>
+							<el-skeleton-item variant="text" v-for="n in 10" style="width: 100%"/>
+						</template>
+						<template #default>
+							<el-timeline class="timeline" v-if="notifications.length != 0">
+								<el-timeline-item
+									v-for="(notification, index) in notifications"
+
+									:key="index"
+									:icon="notification.message.includes('approved') ? Check : Close"
+									:type="notification.message.includes('approved') ? 'success' : 'danger'"
+									:size="'large'"
+									:timestamp="new Date(notification.created_at).toLocaleString() "
+									>
+									<el-text> {{ notification.message }} </el-text>
+								</el-timeline-item>
+							</el-timeline>
+							<el-text type="info" v-else> <center class="no-data"> <i> No data found </i> </center> </el-text>
+						</template>
+					</el-skeleton>
 				</el-card>
 			</el-col>
 			<el-col :span="24">
@@ -391,7 +428,6 @@
 	}
 
 	.scrollbar {
-		height: 400px;
 	}
 
 	.faqs {
@@ -406,6 +442,8 @@
 	.timeline {
 		margin-top: 20px;
 		padding: 0 10px;
+		max-height: 430px;
+		overflow-y: auto;
 	}
 
 	.timeline-col {
@@ -417,9 +455,13 @@
 		font-weight: 500;
 	}
 
+	.no-data {
+		margin-top: 20px;
+	}
+
 	.dashboard-card-title {
-		font-size: 15px;
-		font-weight: 500;
+		font-size: 14px;
+/*		font-weight: 500;*/
 	}
 	
 	.summary-area {
@@ -434,7 +476,7 @@
 
 	.summary-content {
 		font-size: 35px;
-		font-weight: 600;
+/*		font-weight: 600;*/
 	}
 
 	.loading-dashboard {
@@ -465,5 +507,33 @@
 		line-height: normal;
 		align-items: center;
 		text-align: left;
+	}
+	.statistic-footer {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		flex-wrap: wrap;
+		font-size: 12px;
+		color: var(--el-text-color-regular);
+	}
+
+	.statistic-footer .footer-item {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.overall-text {
+		font-style: italic;
+	}
+
+	.statistic-footer .footer-item span:last-child {
+		display: inline-flex;
+		align-items: center;
+		margin-left: 4px;
+	}
+
+	.footer-item .el-text .el-icon {
+		font-size: 12px;
 	}
 </style>

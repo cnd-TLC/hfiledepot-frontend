@@ -4,6 +4,7 @@
 	import { Document } from '@element-plus/icons-vue'
 	import { formatNumber, downloadBlob } from '@/constant/functions'
 	import { apiEndPoint } from '@/constant/data'
+	import { ElMessage } from 'element-plus'
 	import axios from 'axios'
 
 	const totalEstimatedBudget = ref(0)
@@ -38,7 +39,10 @@
 			})
 		}
 		catch (err) {
-			console.log('Error loading data', err)
+			ElMessage({
+				message: `Error loading data: ${err.message}`,
+				type: 'error',
+			})
 		}
 		finally {
 			loading.value = false
@@ -65,7 +69,10 @@
 			loadPpmpItemData()
 		}
 		catch (err) {
-			console.log('Error loading data', err)
+			ElMessage({
+				message: `Error loading data: ${err.message}`,
+				type: 'error',
+			})
 		}
 	})
 </script>
@@ -249,7 +256,7 @@
 	    </el-col>
 		</el-row>
 		<el-divider />
-	  <el-button size="large" class="print-width" type="success" @click="printPpmpForm" :disabled="printPpmpButtonIsDisabled"> Print </el-button> 
+	  <!-- <el-button size="large" class="print-width" type="success" @click="printPpmpForm" :disabled="printPpmpButtonIsDisabled"> Print </el-button>  -->
 	</el-form>
 </template>
 

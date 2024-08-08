@@ -1,9 +1,10 @@
 <script lang='ts' setup>
-	import { ref, reactive, onMounted, computed } from 'vue'
+	import { ref, reactive, onMounted, computed, watch } from 'vue'
 	import { useAuth } from 'vue-auth3'
 	import { ComponentSize } from 'element-plus'
 	import { apiEndPoint } from '@/constant/data'
 	import { useDark } from '@vueuse/core'
+	import { Search, ArrowDown, View, Files, Check, Refresh, Close } from '@element-plus/icons-vue'
 	import axios from 'axios'
 	import GeneralApprovalForm from '@/views/procurement/purchase_request/approval_form/GeneralApprovalForm.vue'
 	import ApprovalForm from '@/views/procurement/purchase_request/approval_form/ApprovalForm.vue'
@@ -32,6 +33,7 @@
 	let user = reactive({
 		permissions: []
 	})
+	let searchValue = ref('')
 
 	const checkPermission = (val: String) => {
 		return user.permissions.includes(val)
@@ -62,7 +64,9 @@
 			}  
 		}
 		try {
-			await axios.get(`${apiEndPoint}/api/list_of_pr/${pageSize.value}/?page=${currentPage.value}`).then((res) => {
+			await axios.get(`${apiEndPoint}/api/list_of_pr/${pageSize.value}/?page=${currentPage.value}`, {
+					params: { search: searchValue.value }
+				}).then((res) => {
 				listPrTableData.value = res.data.retrievedData
 				totalRecords.value = res.data.total
 			})
@@ -99,15 +103,28 @@
 	}
 
 	const handleSizeChange = (val: number) => {
+		searchValue.value = ''
 		loadPrData()
 	}
 	const handleCurrentChange = (val: number) => {
+		searchValue.value = ''
+		loadPrData()
+	}
+
+	const clearSearch = () => {
+		searchValue.value = ''
 		loadPrData()
 	}
 
 	const tagEffect = computed(() => {
 		return isDark.value ? 'dark' : 'light'
 	})
+
+	watch(searchValue, (newValue) => {
+		if (newValue.trim() === '') {
+			loadPrData()
+		}
+    })
 
 	onMounted(() => {
 		try {
@@ -125,19 +142,19 @@
 		<preview-form :data="clickedRow" />
 	</el-dialog>
 	<el-dialog destroy-on-close :overflow="false" v-model="showAttachmentsForm" title="PR Attachments" width="600">
-		<attachment-form :type="'pr'" :data="clickedRow" @attachmentUpdated="loadPrData" />
+		<attachment-form :type="'pr'" :data="clickedRow" @attachmentUpdated="loadPrData(), searchValue = ''" />
 	</el-dialog>
-	<el-dialog destroy-on-close :overflow="false" v-model="showApprovalForm" title="PR Details" width="400">
-		<approval-form :data="clickedRow" @updateButtonIsClicked="loadPrData" />
+	<el-dialog destroy-on-close :overflow="false" v-model="showApprovalForm" title="Approve PR" width="400">
+		<approval-form :data="clickedRow" @updateButtonIsClicked="loadPrData(), searchValue = ''" />
 	</el-dialog>
-	<el-dialog destroy-on-close :overflow="false" v-model="showUpdateApprovalForm" title="PR Details" width="400">
-		<approval-form :data="clickedRow" @updateButtonIsClicked="loadPrData" :update="true" />
+	<el-dialog destroy-on-close :overflow="false" v-model="showUpdateApprovalForm" title="Update PR" width="400">
+		<approval-form :data="clickedRow" @updateButtonIsClicked="loadPrData(), searchValue = ''" :update="true" />
 	</el-dialog>
-	<el-dialog destroy-on-close :overflow="false" v-model="showGeneralApprovalForm" title="PR Details" width="400">
-		<general-approval-form :data="clickedRow" @approveButtonIsClicked="loadPrData" />
+	<el-dialog destroy-on-close :overflow="false" v-model="showGeneralApprovalForm" title="Approve PR" width="400">
+		<general-approval-form :data="clickedRow" @approveButtonIsClicked="loadPrData(), searchValue = ''" />
 	</el-dialog>
-	<el-dialog destroy-on-close :overflow="false" v-model="showRejectForm" title="Reject" width="400">
-		<reject-form :data="clickedRow" @rejectButtonIsClicked="loadPrData" />
+	<el-dialog destroy-on-close :overflow="false" v-model="showRejectForm" title="Reject PR" width="400">
+		<reject-form :data="clickedRow" @rejectButtonIsClicked="loadPrData(), searchValue = ''" />
 	</el-dialog>
 
 	<el-text class="title"> Purchase Requests </el-text>
@@ -146,6 +163,9 @@
 		<el-skeleton animated :loading="loading">
 			<template #template>
 				<el-divider />
+				<div class="custom-card">
+					<el-skeleton-item variant="text" style="width: 30%" />
+				</div>
 				<el-skeleton-item v-for="n in 10" variant="text" style="width: 100%" />
 				<el-divider />
 				<div class="custom-card">
@@ -154,7 +174,19 @@
 			</template>
 			<template #default>
 				<el-divider />
-				<el-table :data="listPrTableData" stripe border>
+				<el-row>
+					<el-col :span="16" />
+					<el-col :span="8">
+						<el-container class="search-area">
+					      	<el-input v-model="searchValue" placeholder="Search" clearable @keyup.enter="loadPrData">
+					      		<template #append>
+									<el-button type="success"  @click="loadPrData" :icon="Search" />
+								</template>
+					      	</el-input>
+				      	</el-container>
+			      	</el-col>
+		      	</el-row>
+				<el-table :data="listPrTableData" border>
 					<!-- <el-table-column type="expand">
 						<template #default="data">
 							Your Data Here
@@ -179,14 +211,21 @@
 							<br />
 							<el-text size="small"> {{ data.row.section }} </el-text>
 						</template>
-						</el-table-column>
-						<!-- <el-table-column prop="cash_availability" label="Cash Availability" /> -->
-						<el-table-column prop="fpp" label="FPP" />
-						<el-table-column prop="fund" label="Fund" sortable>
-							<template #default="data">
-								<el-text size="large"> {{ data.row.fund }} </el-text>
-							</template>
-						</el-table-column>
+					</el-table-column>
+					<!-- <el-table-column prop="cash_availability" label="Cash Availability" /> -->
+					<el-table-column prop="fpp" label="FPP">
+						<template #default="data">
+							<span v-if="data.row.fpp"> {{ data.row.fpp }}</span>
+							<center v-else class="n-a"> N/A </center>
+						</template>
+					</el-table-column>
+					<el-table-column prop="fund" label="Fund" sortable>
+						<template #default="data">
+							<!-- ₱  -->
+							<span v-if="data.row.fund"> {{ data.row.fund }}</span>
+							<center v-else class="n-a"> N/A </center>
+						</template>
+					</el-table-column>
 
 					<el-table-column prop="status" label="Status" width="150">
 						<template #default="data">
@@ -195,19 +234,23 @@
 							<el-text class="status" size="small" v-if="data.row.status == 'Rejected'" type="danger"> {{ data.row.status }} </el-text>
 						</template>
 					</el-table-column>
-					<el-table-column prop="action" label="Action" width="170">
+					<el-table-column prop="action" label="Action" width="120">
 						<template #default="data">
-							<el-button class="action-button" type="info" @click="showForm('PreviewForm', data.row)"> Preview </el-button>
-							<br />
-							<el-button class="action-button" v-if="checkPermission('purchaseRequestApprovalHasManageAttachments') && data.row.approved_by_cao_name == null" type="info" @click="showForm('AttachmentsForm', data.row)"> Attachments </el-button>
-								<br v-if="checkPermission('purchaseRequestApprovalHasManageAttachments') && data.row.approved_by_cao_name == null"/>
-							<el-button class="action-button" v-if="checkPermission('purchaseRequestApprovalHasGeneralApprove')" type="success" @click="showForm('GeneralApprovalForm', data.row)"> Approve </el-button>
-							<br v-if="checkPermission('purchaseRequestApprovalHasGeneralApprove')"/>
-							<el-button class="action-button" v-if="checkPermission('purchaseRequestApprovalHasBacApprove')" type="success" @click="showForm('ApprovalForm', data.row)"> Approve [BAC] </el-button>
-							<br v-if="checkPermission('purchaseRequestApprovalHasBacApprove')"/>
-							<el-button class="action-button" v-if="checkPermission('purchaseRequestApprovalHasUpdate')" type="info" @click="showForm('UpdateForm', data.row)"> Update </el-button>
-							<br v-if="checkPermission('purchaseRequestApprovalHasUpdate')"/>
-							<el-button class="action-button" v-if="checkPermission('purchaseRequestApprovalHasReject')" type="danger" @click="showForm('RejectForm', data.row)"> Reject </el-button>
+							<el-dropdown trigger="click">
+								<el-button type="info">
+									Action &nbsp; <el-icon><arrow-down /></el-icon>
+  								</el-button>
+								<template #dropdown>
+									<el-dropdown-menu>
+										<el-dropdown-item @click="showForm('PreviewForm', data.row)"> <el-icon><View /></el-icon> Preview </el-dropdown-item>
+										<el-dropdown-item v-if="checkPermission('purchaseRequestApprovalHasManageAttachments') && data.row.approved_by_cao_name == null" @click="showForm('AttachmentsForm', data.row)"> <el-icon><Files /></el-icon> Attachments </el-dropdown-item>
+										<el-dropdown-item v-if="checkPermission('purchaseRequestApprovalHasGeneralApprove')" @click="showForm('GeneralApprovalForm', data.row)"> <el-icon><Check /></el-icon> Approve </el-dropdown-item>
+										<el-dropdown-item v-if="checkPermission('purchaseRequestApprovalHasBacApprove')" @click="showForm('ApprovalForm', data.row)"> <el-icon><Check /></el-icon> Approve [BAC] </el-dropdown-item>
+										<el-dropdown-item v-if="checkPermission('purchaseRequestApprovalHasUpdate')" @click="showForm('UpdateForm', data.row)"> <el-icon><Refresh /></el-icon> Update </el-dropdown-item>
+										<el-dropdown-item v-if="checkPermission('purchaseRequestApprovalHasReject')" @click="showForm('RejectForm', data.row)"> <el-text type="danger"> <el-icon><Close /></el-icon> Reject </el-text> </el-dropdown-item>
+									</el-dropdown-menu>
+								</template>
+  							</el-dropdown>
 						</template>
 					</el-table-column>
 				</el-table>
@@ -249,11 +292,6 @@
 		font-size: 12px;
 	}
 
-	.action-button {
-		width: 100%;
-		margin-bottom: 3px;
-	}
-
 	.el-card {
 		margin-top: 15px;
 		text-align: right;
@@ -261,5 +299,9 @@
 
 	.el-pagination {
 		justify-content: right;
+	}
+
+	.search-area {
+		margin-bottom: 20px;
 	}
 </style>

@@ -1,9 +1,10 @@
 <script lang="ts" setup>
-	import { reactive, ref, onMounted } from 'vue'
+	import { reactive, ref, onMounted, computed } from 'vue'
 	import type { FormProps } from 'element-plus'
 	import { apiEndPoint } from '@/constant/data'
-	import axios from 'axios'
+	import { ElMessage } from 'element-plus'
 	import { useRouter } from 'vue-router'
+	import axios from 'axios'
 
 	const router = useRouter().currentRoute.value
 
@@ -25,7 +26,6 @@
 		category: '',
 		general_desc: '',
 		unit: '',
-		quantity: 1,
 		lumpsum: false,
 		mode_of_procurement: '',
 		estimated_budget: 0.00,
@@ -43,9 +43,26 @@
 		dec: '',
 	})
 
+	const totalQuantity = computed (() => {
+		return [
+	        ppmpItemFormData.jan,
+	        ppmpItemFormData.feb,
+	        ppmpItemFormData.mar,
+	        ppmpItemFormData.apr,
+	        ppmpItemFormData.may,
+	        ppmpItemFormData.jun,
+	        ppmpItemFormData.jul,
+	        ppmpItemFormData.aug,
+	        ppmpItemFormData.sept,
+	        ppmpItemFormData.oct,
+	        ppmpItemFormData.nov,
+	        ppmpItemFormData.dec
+	    ].reduce((total, value) => total + (parseFloat(value) || 0), 0)
+	})
+
 	const managePpmpItemButtonIsDisabled = ref(true)
 
-	const getItems = async () => {
+	const setAuthHeader = () => {
 		const token = JSON.parse(localStorage.auth_token_default);
 		if(token){
 			axios.defaults.headers = {
@@ -53,13 +70,21 @@
 				Authorization: `Bearer ${token}`
 			}  
 		}
+	}
+
+	const getItems = async () => {
+		setAuthHeader()
+
 		try{
 			await axios.get(`${apiEndPoint}/api/list_of_department_ppmp_items_catalog`).then((res) => {
 				ppmpItemOptions.value = res.data.retrievedData
 			})
 		}
 		catch (err) {
-			console.log('Cannot load roles: ', err)
+			ElMessage({
+				message: `Cannot load roles: ${err.message}`,
+				type: 'error',
+			})
 		}
 		finally {
 			ppmpGeneralDescLoading.value = false
@@ -67,13 +92,8 @@
 	}
 
 	const getCode = async () => {
-		const token = JSON.parse(localStorage.auth_token_default);
-		if(token){
-			axios.defaults.headers = {
-				accept: "application/json",
-				Authorization: `Bearer ${token}`
-			}  
-		}
+		setAuthHeader()
+
 		try {
 			await axios.get(`${apiEndPoint}/api/get_code/${router.params.id}`).then((res) => {
 				ppmpItemFormData.code = res.data.code
@@ -81,7 +101,10 @@
 			managePpmpItemButtonIsDisabled.value = false
 		}
 		catch (err) {
-			console.log('Error getting code: ', err)
+			ElMessage({
+				message: `Cannot generate code: ${err.message}`,
+				type: 'error',
+			})
 		}
 	}
 
@@ -92,13 +115,8 @@
 	}
 
 	const managePpmpItemForm = async (formType: String) => {
-		const token = JSON.parse(localStorage.auth_token_default);
-		if(token){
-			axios.defaults.headers = {
-				accept: "application/json",
-				Authorization: `Bearer ${token}`
-			}  
-		}
+		setAuthHeader()
+
 		try{
 			managePpmpItemButtonIsDisabled.value = true
 			if (formType === 'submit'){
@@ -108,7 +126,7 @@
 					category: ppmpItemFormData.category,
 					general_desc: ppmpItemFormData.general_desc,
 					unit: ppmpItemFormData.unit,
-					quantity: ppmpItemFormData.quantity,
+					quantity: totalQuantity.value,
 					lumpsum: ppmpItemFormData.lumpsum,
 					mode_of_procurement: ppmpItemFormData.mode_of_procurement,
 					estimated_budget: ppmpItemFormData.estimated_budget,
@@ -125,7 +143,10 @@
 					nov: ppmpItemFormData.nov,
 					dec: ppmpItemFormData.dec
 				}).then((res) => {
-					console.log(res.data.message)
+					ElMessage({
+						message: res.data.message,
+						type: 'success',
+					})
 				})
 			}
 			else{
@@ -135,7 +156,7 @@
 					category: ppmpItemFormData.category,
 					general_desc: ppmpItemFormData.general_desc,
 					unit: ppmpItemFormData.unit,
-					quantity: ppmpItemFormData.quantity,
+					quantity: totalQuantity.value,
 					lumpsum: ppmpItemFormData.lumpsum,
 					mode_of_procurement: ppmpItemFormData.mode_of_procurement,
 					estimated_budget: ppmpItemFormData.estimated_budget,
@@ -152,13 +173,19 @@
 					nov: ppmpItemFormData.nov,
 					dec: ppmpItemFormData.dec
 				}).then((res) => {
-					console.log(res.data.message)
+					ElMessage({
+						message: res.data.message,
+						type: 'success',
+					})
 				})
 			}
 			emit('manageButtonIsClicked')
 		}
 		catch (err) {
-			console.log('Cannot submit form: ', err)
+			ElMessage({
+				message: `Cannot submit form: ${err.message}`,
+				type: 'error',
+			})
 		}
 		finally {
 			managePpmpItemButtonIsDisabled.value = false
@@ -172,7 +199,7 @@
 			ppmpItemFormData.category = props.data.category
 			ppmpItemFormData.general_desc = props.data.general_desc
 			ppmpItemFormData.unit = props.data.unit
-			ppmpItemFormData.quantity = props.data.lumpsum ? 1 : props.data.quantity
+			totalQuantity.value = props.data.lumpsum ? 0 : props.data.quantity
 			ppmpItemFormData.lumpsum = props.data.lumpsum ? true : false
 			ppmpItemFormData.mode_of_procurement = props.data.mode_of_procurement
 			ppmpItemFormData.estimated_budget = props.data.estimated_budget
@@ -234,8 +261,11 @@
 				</el-form-item>
 		    </el-col>
 	    	<el-col :span="4" class="input-area">
-		 		<el-form-item label="Quantity">
-			      	<el-input-number class="full-width" v-model="ppmpItemFormData.quantity" :min="1" :disabled="ppmpItemFormData.lumpsum" />
+		 		<el-form-item>
+		 			<template #label>
+		 				Quantity <i class="note"> schedule/milestone activities </i>
+		 			</template>
+			      	<el-input class="full-width" v-model="totalQuantity" :min="1" :disabled="ppmpItemFormData.lumpsum" readonly />
 			      	<el-checkbox v-model="ppmpItemFormData.lumpsum"> Lumpsum </el-checkbox>
 				</el-form-item>
 		    </el-col>
@@ -401,6 +431,12 @@
 
 	.input-area {
 		padding: 0 10px 0 0;
+	}
+
+	.note {
+		line-height: 0;
+		color: #67c23a;
+		font-size: 10px;
 	}
 
 	.form-item-top-padding {

@@ -3,6 +3,7 @@
 	import type { FormProps } from 'element-plus'
 	import { useRouter } from 'vue-router'
 	import { apiEndPoint } from '@/constant/data'
+	import { ElMessage } from 'element-plus'
 	import axios from 'axios'
 
 	const router = useRouter()
@@ -44,7 +45,10 @@
 				await axios.post(apiEndPoint + '/api/add_pr', { 
 					purpose: prFormData.purpose,
 				}).then((res) => {
-					console.log(res.data.message)
+					ElMessage({
+						message: res.data.message,
+						type: 'success',
+					})
 					pr_id.value = res.data.id
 					router.push({ name: 'request_items', params: { 
 						id: res.data.id, 
@@ -62,13 +66,19 @@
 					// fund: prFormData.fund, 
 					purpose: prFormData.purpose
 				}).then((res) => {
-					console.log(res.data.message)
+					ElMessage({
+						message: res.data.message,
+						type: 'success',
+					})
 				})
 				emit('updateButtonIsClicked')
 			}
 		}
 		catch (err) {
-			console.log('Cannot submit form: ', err)
+			ElMessage({
+				message: `Cannot submit form: ${err.message}`,
+				type: 'error',
+			})
 		}
 		finally {
 			sendPrButtonIsDisabled.value = false

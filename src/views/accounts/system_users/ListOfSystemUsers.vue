@@ -4,6 +4,8 @@
 	import { ComponentSize, FormProps, ElMessage } from 'element-plus'
 	import { Search } from '@element-plus/icons-vue'
 	import { apiEndPoint } from '@/constant/data'
+	import { ArrowDown, Refresh, Delete } from '@element-plus/icons-vue'
+	import { downloadBlob } from '@/constant/functions'
 	import axios from 'axios'
 	import SystemUserForm from '@/views/accounts/system_users/system_users_form/SystemUserForm.vue'
 	import RemoveForm from '@/views/accounts/system_users/system_users_form/RemoveForm.vue'
@@ -90,9 +92,11 @@
 	}
 
 	const handleSizeChange = (val: number) => {
+		searchValue.value = ''
 		loadSystemUsersData()
 	}
 	const handleCurrentChange = (val: number) => {
+		searchValue.value = ''
 		loadSystemUsersData()
 	}
 
@@ -109,7 +113,7 @@
 		if (newValue.trim() === '') {
 			loadSystemUsersData()
 		}
-    });
+    })
 
 	onMounted(() => {
 		try {
@@ -126,14 +130,14 @@
 </script>
 
 <template>
-	<el-dialog destroy-on-close :overflow="false" v-model="showSystemUserForm" title="System User" width="600">
-		<system-user-form @manageButtonIsClicked="loadSystemUsersData" />
+	<el-dialog destroy-on-close :overflow="false" v-model="showSystemUserForm" title="System User" width="400">
+		<system-user-form @manageButtonIsClicked="loadSystemUsersData(), searchValue = ''" />
 	</el-dialog>
-	<el-dialog destroy-on-close :overflow="false" v-model="showUpdateSystemUserForm" title="System User" width="600">
-		<system-user-form @manageButtonIsClicked="loadSystemUsersData" :data="clickedRow" :update="true" />
+	<el-dialog destroy-on-close :overflow="false" v-model="showUpdateSystemUserForm" title="System User" width="400">
+		<system-user-form @manageButtonIsClicked="loadSystemUsersData(), searchValue = ''" :data="clickedRow" :update="true" />
 	</el-dialog>
 	<el-dialog destroy-on-close :overflow="false" v-model="showRemoveForm" title="Remove User" width="400">
-		<remove-form @removeButtonIsClicked="loadSystemUsersData" :data="clickedRow" />
+		<remove-form @removeButtonIsClicked="loadSystemUsersData(), searchValue = ''" :data="clickedRow" />
 	</el-dialog>
 
 	<el-text class="title"> System Users </el-text>
@@ -169,8 +173,7 @@
 					      	</el-container>
 				      	</el-col>
 			      	</el-row>
-					<el-table :data="listOfSystemUsers" stripe border>
-						<el-table-column prop="id" label="ID" sortable width="120"/>
+					<el-table :data="listOfSystemUsers" border>
 						<el-table-column prop="name" label="Name" sortable />
 						<el-table-column prop="email" label="Email" sortable />
 						<el-table-column prop="department" label="Department" sortable />
@@ -181,11 +184,21 @@
 								<el-text class="status" size="small" v-if="data.row.status == 'Inactive'"> {{ data.row.status }} </el-text>
 							</template>
 						</el-table-column>
-						<el-table-column prop="action" v-if="checkPermission('systemUsersHasUpdate') || checkPermission('systemUsersHasRemove')" label="Action" width="170">
+						<el-table-column prop="action" v-if="checkPermission('systemUsersHasUpdate') || checkPermission('systemUsersHasRemove')" label="Action" width="120">
 							<template #default="data">
-								<el-button class="action-button" v-if="checkPermission('systemUsersHasUpdate')" type="info" @click="showForm('UpdateForm', data.row)"> Update </el-button>
-								<br v-if="checkPermission('systemUsersHasUpdate')"/>
-								<el-button class="action-button" v-if="checkPermission('systemUsersHasRemove')" type="danger" @click="showForm('RemoveForm', data.row)"> Remove </el-button>
+								
+
+								<el-dropdown trigger="click">
+									<el-button type="info">
+										Action &nbsp; <el-icon><arrow-down /></el-icon>
+	  								</el-button>
+									<template #dropdown>
+										<el-dropdown-menu>
+											<el-dropdown-item class="action-button" v-if="checkPermission('systemUsersHasUpdate')" @click="showForm('UpdateForm', data.row)"> <el-icon><Refresh /></el-icon> Update </el-dropdown-item>
+											<el-dropdown-item class="action-button" v-if="checkPermission('systemUsersHasRemove')" @click="showForm('RemoveForm', data.row)"> <el-text type="danger"> <el-icon><Delete /></el-icon> Remove </el-text> </el-dropdown-item>
+										</el-dropdown-menu>
+									</template>
+								</el-dropdown>
 							</template>
 						</el-table-column>
 					</el-table>
@@ -250,9 +263,5 @@
 
 	.search-area {
 		margin-bottom: 20px;
-	}
-
-	.search-area .el-input {
-		margin-right: 5px;
 	}
 </style>

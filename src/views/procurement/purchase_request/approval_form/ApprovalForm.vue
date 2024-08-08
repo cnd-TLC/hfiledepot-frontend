@@ -2,6 +2,7 @@
 	import { reactive, ref } from 'vue'
 	import type { FormProps } from 'element-plus'
 	import { apiEndPoint } from '@/constant/data'
+	import { ElMessage } from 'element-plus'
 	import axios from 'axios'
 
 	const props = defineProps({
@@ -37,14 +38,20 @@
 					fund: prFormData.fund,
 					fpp: prFormData.fpp,
 				}).then((res) => {
-					console.log(res.data.message)
+					ElMessage({
+						message: res.data.message,
+						type: 'success',
+					})
 				})
 
 			approvePrButtonIsDisabled.value = true
 			emit('updateButtonIsClicked')
 		}
 		catch (err) {
-			console.log('Cannot submit form: ', err)
+			ElMessage({
+				message: `Cannot approve: ${err.message}`,
+				type: 'error',
+			})
 		}
 		finally {
 			approvePrButtonIsDisabled.value = false

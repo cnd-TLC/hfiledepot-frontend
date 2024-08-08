@@ -2,12 +2,7 @@
 	import { ref } from 'vue';
 	import VueApexCharts from 'vue3-apexcharts';
 
-	// const tooltipTheme = ref('dark')
-
-	// const updateTooltipTheme = () => {
-	// 	const colorScheme = localStorage.getItem('vueuse-color-scheme');
-	// 	tooltipTheme.value = colorScheme == 'light' ? 'light' : 'dark'
-	// }
+	
 
 	const props = defineProps({
 			data: Array
@@ -17,13 +12,43 @@
 		{
 			name: '',
 			data: props.data,
-			color: '#529b2e'
+			// color: '#529b2e'
+			color: '#777'
 		}
 	]);
 
+	const categories = [
+		'CMO', 'CAdmO', 'CToO', 'CPDO', 'CBO', 'CAccO', 'CGSO', 
+		'CLO', 'CHRMO', 'CZAO', 'CTO', 'CAsO', 
+		'CCRO', 'CHO', 'CSWDO', 'CEO', 'CASO', 'CENRO', 
+		'CVO', 'CDRRMO', 'PL', 'PI', 'BAPAS', 'TS', 'MO', 
+		'DILG', 'SP', 'CICTO', 'BAC'
+	]
+
+	const categoriesNames = [
+		'City Mayor\'s Office', 'City Administrator\'s Office', 
+		'City Tourism Office', 'City Planning and Development Office', 
+		'City Budget Office', 'City Accountant\'s Office', 
+		'City General Services Office', 'City Legal Office', 
+		'City Human Resource Management Office', 
+		'City Zoning Administration Office', 
+		'City Treasurer\'s Office', 'City Assessor\'s Office', 
+		'City Civil Registrar\'s Office', 'City Health Office', 
+		'City Social Welfare and Development Office', 
+		'City Engineer\'s Office', 'City Agriculture Services Office', 
+		'City Environment and Natural Resources Office', 
+		'City Veterinary Office', 
+		'City Disaster and Risk Reduction Management Office', 
+		'Permits and Licensing', 'Public Information', 'BAPAS', 
+		'Traffic and Security', 'Market Operations', 
+		'DILG-Sorsogon City', 'Sangguniang Panlungsod', 
+		'City Information and Communications Technology Office', 
+		'Bids and Awards Committee'
+	]
+
 	const requestTrackerOptions = ref({
 		chart: {
-			type: 'line',
+			type: 'bar',
 			zoom: {
 				enabled: true
 			},
@@ -56,38 +81,23 @@
 		        autoSelected: 'zoom' 
 	      	},
 		},
-		dataLabels: {
-			enabled: false
+		plotOptions: {
+		    bar: {
+		      	// horizontal: true,
+		      	// distributed: true,
+		    }
 		},
-		stroke: {
-			curve: 'straight',
-			width: 4
+		dataLabels: {
+			enabled: true
 		},
 		markers: {
 			size: 6
 		},
 		xaxis: {
-			categories: ['Budget Office', 'City Treasurer', 'Mayor\'s Office', 'BAC Office', 'CGSO', 'Accounting Office'],
+			categories: categories,
 			// tickPlacement: 'between'
 		},
-		// yaxis: [
-		// 	{
-		// 		axisBorder: {
-		// 			show: true
-		// 		},
-		// 	},
-		// 	{
-		// 		opposite: true,
-		// 		axisBorder: {
-		// 			show: true
-		// 		},
-		// 		labels: {
-		// 			show: false
-		// 		}
-		// 	}
-		// ],
 		yaxis: {
-			min: 0,
 			labels: {
 				formatter: function (value) {
 					return Math.floor(value)
@@ -97,6 +107,7 @@
 		grid: {  
 			show: true,
 			position: 'back',     
+            strokeDashArray: 2, // Style of the grid lines (dashed)
 			xaxis: {
 				lines: {
 					show: true
@@ -110,15 +121,15 @@
 		},
 		tooltip: {
 			enabled: true, 
-			// theme: 'dark', 
 			marker: {
-				show: true
+				show: true 
 			},
-			// Adding custom styles for tooltip content
 			custom: function({ series, seriesIndex, dataPointIndex, w }) {
+				const category = categoriesNames[dataPointIndex]
+				const value = series[seriesIndex][dataPointIndex]
 				return `
 					<div class="hoverArea">
-						${series[seriesIndex][dataPointIndex]} approved request/s
+						${category} : ${value} request/s
 					</div>
 				`;
 			}

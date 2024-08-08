@@ -2,6 +2,7 @@
 	import { ref, reactive } from 'vue'
 	import type { FormProps } from 'element-plus'
 	import { apiEndPoint } from '@/constant/data'
+	import { ElMessage } from 'element-plus'
 	import axios from 'axios'
 
 	const labelPosition = ref<FormProps['labelPosition']>('top')
@@ -31,14 +32,20 @@
 					status: 'Rejected',
 					reason: ppmpFormData.reason
 				}).then((res) => {
-					console.log(res.data.message)
+					ElMessage({
+						message: res.data.message,
+						type: 'success',
+					})
 				})
 
 			rejectItemButtonIsDisabled.value = true
 			emit('manageStatusButtonIsClicked')
 		}
 		catch (err) {
-			console.log('Cannot reject form: ', err)
+			ElMessage({
+				message: `Cannot reject: ${err.message}`,
+				type: 'error',
+			})
 		}
 		finally {
 			rejectItemButtonIsDisabled.value = false

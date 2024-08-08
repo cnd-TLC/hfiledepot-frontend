@@ -17,11 +17,6 @@ const router = createRouter({
       redirect: '/signin'
     },
     {
-      path: "/:catchAll(.*)",
-      name: "404",
-      component: () => import("@/views/404.vue"),
-    },
-    {
       path: '/',
       component: () => import('@/layouts/Main.vue'),
       meta: {
@@ -29,6 +24,14 @@ const router = createRouter({
       },
       redirect: '/dashboard',
       children: [
+        {
+          path: '/profile',
+          name: 'profile',
+          component: () => import('@/views/auth/Profile.vue'),
+          meta: {
+            auth: true,
+          }
+        },
         {
           path: '/dashboard',
           name: 'dashboard',
@@ -110,6 +113,11 @@ const router = createRouter({
           component: () => import('@/views/accounts/system_users/ListOfSystemUsers.vue')
         },
       ]
+    },
+    {
+      path: "/:catchAll(.*)",
+      name: "404",
+      component: () => import("@/views/404.vue"),
     }
   ]
 })

@@ -1,9 +1,10 @@
 <script lang='ts' setup>
-	import { ref, reactive, onMounted, computed } from 'vue'
+	import { ref, reactive, onMounted, computed, watch } from 'vue'
 	import { useAuth } from 'vue-auth3'
 	import { ComponentSize } from 'element-plus'
 	import { apiEndPoint } from '@/constant/data'
 	import { useDark } from '@vueuse/core'
+	import { Search, ArrowDown, View, Files, Check, Close } from '@element-plus/icons-vue'
 	import axios from 'axios'
 	import ApprovalForm from '@/views/procurement/ppmp/approval_form/ApprovalForm.vue'
 	import RejectForm from '@/views/procurement/ppmp/approval_form/RejectForm.vue'
@@ -29,6 +30,7 @@
 	let user = reactive({
 		permissions: []
 	})
+	let searchValue = ref('')
 
 	const checkPermission = (val: String) => {
 		return user.permissions.includes(val)
@@ -55,7 +57,9 @@
 			}  
 		}
 		try {
-			await axios.get(`${apiEndPoint}/api/list_of_ppmp/${pageSize.value}/?page=${currentPage.value}`).then((res) => {
+			await axios.get(`${apiEndPoint}/api/list_of_ppmp/${pageSize.value}/?page=${currentPage.value}`, {
+					params: { search: searchValue.value }
+				}).then((res) => {
 				listPpmpRequestTableData.value = res.data.retrievedData
 				totalRecords.value = res.data.total
 			})
@@ -86,15 +90,28 @@
 	}
 
 	const handleSizeChange = (val: number) => {
+		searchValue.value = ''
 		loadPpmpData()
 	}
 	const handleCurrentChange = (val: number) => {
+		searchValue.value = ''
+		loadPpmpData()
+	}
+
+	const clearSearch = () => {
+		searchValue.value = ''
 		loadPpmpData()
 	}
 
 	const tagEffect = computed(() => {
 		return isDark.value ? 'dark' : 'light'
 	})
+
+	watch(searchValue, (newValue) => {
+		if (newValue.trim() === '') {
+			loadPpmpData()
+		}
+    })
 
 	onMounted(() => {
 		try {
@@ -108,17 +125,17 @@
 </script>
 
 <template>
-	<el-dialog destroy-on-close :overflow="false" v-model="showApprovalForm"  title="PPMP Details" width="400">
-		<approval-form :data="clickedRow" @manageStatusButtonIsClicked="loadPpmpData" />
+	<el-dialog destroy-on-close :overflow="false" v-model="showApprovalForm"  title="Approve PPMP" width="400">
+		<approval-form :data="clickedRow" @manageStatusButtonIsClicked="loadPpmpData(), searchValue = ''" />
 	</el-dialog>
 	<el-dialog destroy-on-close :overflow="false" v-model="showPreviewForm" title="PPMP Details" width="95%">
 		<preview-form :data="clickedRow" />
 	</el-dialog>
-	<el-dialog destroy-on-close :overflow="false" v-model="showAttachmentsForm" title="PR Attachments" width="600">
-		<attachment-form :type="'ppmp'" :data="clickedRow" @attachmentUpdated="loadPpmpData" />
+	<el-dialog destroy-on-close :overflow="false" v-model="showAttachmentsForm" title="PPMP Attachments" width="600">
+		<attachment-form :type="'ppmp'" :data="clickedRow" @attachmentUpdated="loadPpmpData(), searchValue = ''" />
 	</el-dialog>
 	<el-dialog destroy-on-close :overflow="false" v-model="showRejectForm"  title="Reject PPMP" width="400">
-		<reject-form :data="clickedRow" @manageStatusButtonIsClicked="loadPpmpData" />
+		<reject-form :data="clickedRow" @manageStatusButtonIsClicked="loadPpmpData(), searchValue = ''" />
 	</el-dialog>
 
 	<el-text class="title"> Procurement Project Management Plans </el-text>
@@ -126,10 +143,10 @@
 	<el-card shadow="never">
 		<el-skeleton animated :loading="loading">
 			<template #template>
-				<div class="custom-card">
-					<el-skeleton-item variant="button" style="width: 10%" />
-				</div>
 				<el-divider />
+				<div class="custom-card">
+					<el-skeleton-item variant="text" style="width: 30%" />
+				</div>
 				<el-skeleton-item v-for="n in 10" variant="text" style="width: 100%" />
 				<el-divider />
 				<div class="custom-card">
@@ -139,7 +156,19 @@
 			<template #default>
 				<div class="custom-card">
 					<el-divider />
-					<el-table :data="listPpmpRequestTableData" stripe border>
+					<el-row>
+						<el-col :span="16" />
+						<el-col :span="8">
+							<el-container class="search-area">
+						      	<el-input v-model="searchValue" placeholder="Search" clearable @keyup.enter="loadPpmpData">
+						      		<template #append>
+										<el-button type="success"  @click="loadPpmpData" :icon="Search" />
+									</template>
+						      	</el-input>
+					      	</el-container>
+				      	</el-col>
+			      	</el-row>
+					<el-table :data="listPpmpRequestTableData" border>
 						<el-table-column label="Project" sortable>
 							<template #default="data">
 								<el-text class="remarks" size="small" v-if="data.row.status == 'Rejected' && data.row.remarks" type="danger"> {{ data.row.remarks }} </el-text>
@@ -159,15 +188,21 @@
 							</template>
 						</el-table-column>
 
-						<el-table-column prop="action" label="Action" width="170">
+						<el-table-column prop="action" label="Action" width="120">
 							<template #default="data">
-								<el-button class="action-button" type="info" @click="showForm('PreviewForm', data.row)"> Preview Items </el-button>
-								<br />
-								<el-button class="action-button" v-if="checkPermission('managePpmpHasManageAttachments') && data.row.status == 'Pending'" type="info" @click="showForm('AttachmentsForm', data.row)"> Attachments </el-button>
-								<br v-if="checkPermission('managePpmpHasManageAttachments') && data.row.status == 'Pending'"/>
-								<el-button class="action-button" v-if="checkPermission('ppmpApprovalHasApprove')" type="success" @click="showForm('ApprovalForm', data.row)"> Approve </el-button>
-								<br v-if="checkPermission('ppmpApprovalHasApprove')" />
-								<el-button class="action-button" v-if="checkPermission('ppmpApprovalHasReject')" type="danger" @click="showForm('RemoveForm', data.row)"> Reject </el-button>
+								<el-dropdown trigger="click">
+									<el-button type="info" class="action-button">
+										Action &nbsp; <el-icon><arrow-down /></el-icon>
+	  								</el-button>
+									<template #dropdown>
+									<el-dropdown-menu>
+										<el-dropdown-item class="action-button" @click="showForm('PreviewForm', data.row)"> <el-icon><View /></el-icon> Preview Items </el-dropdown-item>
+										<el-dropdown-item class="action-button" v-if="checkPermission('managePpmpHasManageAttachments') && data.row.status == 'Pending'" @click="showForm('AttachmentsForm', data.row)"> <el-icon><Files /></el-icon> Attachments </el-dropdown-item>
+										<el-dropdown-item class="action-button" v-if="checkPermission('ppmpApprovalHasApprove')" @click="showForm('ApprovalForm', data.row)"> <el-icon><Check /></el-icon> Approve </el-dropdown-item>
+										<el-dropdown-item class="action-button" v-if="checkPermission('ppmpApprovalHasReject')" @click="showForm('RemoveForm', data.row)"> <el-text type="danger"> <el-icon><Close /></el-icon> Reject </el-text> </el-dropdown-item> 
+									</el-dropdown-menu>
+									</template>
+	  							</el-dropdown>
 							</template>
 						</el-table-column>
 					</el-table>
@@ -225,5 +260,9 @@
 
 	.el-pagination {
 		justify-content: right;
+	}
+
+	.search-area {
+		margin-bottom: 20px;
 	}
 </style>
