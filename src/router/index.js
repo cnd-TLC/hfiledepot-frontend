@@ -25,20 +25,20 @@ const router = createRouter({
       redirect: '/dashboard',
       children: [
         {
-          path: '/profile',
-          name: 'profile',
-          component: () => import('@/views/auth/Profile.vue'),
-          meta: {
-            auth: true,
-          }
-        },
-        {
           path: '/dashboard',
           name: 'dashboard',
           meta: {
             title: 'Dashboard'
           },
           component: () => import('@/views/Dashboard.vue')
+        },
+        {
+          path: '/profile',
+          name: 'profile',
+          component: () => import('@/views/auth/Profile.vue'),
+          meta: {
+            auth: true,
+          }
         },
         {
           path: '/purchase_request',
@@ -65,8 +65,8 @@ const router = createRouter({
           component: () => import('@/views/procurement/purchase_request/ListOfPrApprovals.vue')
         },
         {
-          path: '/manage_ppmp',
-          name: 'manage_ppmp',
+          path: '/manage_ppmp_app',
+          name: 'manage_ppmp_app',
           meta: {
             title: 'Project Procurement Management Plans'
           },
@@ -89,12 +89,12 @@ const router = createRouter({
           component: () => import('@/views/procurement/ppmp/ListOfPpmpApprovals.vue')
         },
         {
-          path: '/ppmp_items_catalog',
-          name: 'ppmp_items_catalog',
+          path: '/ppmp_items_master_list',
+          name: 'ppmp_items_master_list',
           meta: {
-            title: 'PPMP Items Catalog'
+            title: 'PPMP Items Master List'
           },
-          component: () => import('@/views/procurement/ppmp/ListOfPpmpItemsCatalog.vue')
+          component: () => import('@/views/procurement/ppmp/ListOfPpmpItemsMasterList.vue')
         },
         {
           path: '/roles_and_permissions',

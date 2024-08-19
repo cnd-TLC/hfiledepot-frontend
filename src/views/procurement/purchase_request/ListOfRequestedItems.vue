@@ -4,7 +4,7 @@
 	import { apiEndPoint } from '@/constant/data'
 	import { formatNumber } from '@/constant/functions'
 	import { useRouter } from 'vue-router'
-	import { downloadBlob } from '@/constant/functions'
+	import { downloadPrItemsXlsxTemplate } from '@/constant/functions'
 	import axios from 'axios'
 	import ItemForm from '@/views/procurement/purchase_request/item_form/ItemForm.vue'
 	import RemoveForm from '@/views/procurement/purchase_request/item_form/RemoveForm.vue'
@@ -70,10 +70,10 @@
 
 	const downloadPrItemsTemplate = () => {
 		setAuthHeader()
-		axios.get(`${apiEndPoint}/api/export_files/pr/${router.params.id}`, {
+		axios.get(`${apiEndPoint}/api/export_files/pr`, {
 		  responseType: 'blob',
 		}).then((res) => {
-			downloadBlob(res)
+			downloadPrItemsXlsxTemplate(res, router.params.id)
 		})
 	}
 

@@ -170,7 +170,7 @@
 		<remove-form @removeButtonIsClicked="loadPpmpData(), searchValue = ''" :data="clickedRow"/>
 	</el-dialog>
 
-	<el-text class="title"> Procurement Project Management Plans </el-text>
+	<el-text class="title"> Procurement Project Management Plans / Annual Procurement Plans </el-text>
 
 	<el-card shadow="never">
 		<el-skeleton animated :loading="loading">

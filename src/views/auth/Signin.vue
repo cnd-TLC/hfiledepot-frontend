@@ -38,7 +38,16 @@
 	  	})
 	  }
 	  catch (err) {
-	  	console.error('Login failed: ', err)
+	  	if (err.message == 'Network Error!')
+		  	ElMessage({
+				message: `Login failed: ${err.message}!`,
+				type: 'error',
+			})
+		else
+			ElMessage({
+				message: `Login failed: Credentials doesn't match!`,
+				type: 'error',
+			})
 	  }
 	  finally {
 	  	signInButtonIsDisabled.value = false

@@ -372,8 +372,8 @@
 									v-for="(notification, index) in notifications"
 
 									:key="index"
-									:icon="notification.message.includes('approved') ? Check : Close"
-									:type="notification.message.includes('approved') ? 'success' : 'danger'"
+									:icon="notification.message.includes('approved') || notification.message.includes('updated') ? Check : Close"
+									:type="notification.message.includes('approved') || notification.message.includes('updated') ? 'success' : 'danger'"
 									:size="'large'"
 									:timestamp="new Date(notification.created_at).toLocaleString() "
 									>

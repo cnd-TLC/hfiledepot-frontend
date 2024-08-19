@@ -16,9 +16,11 @@
 		data: Object
 	})
 
-	const ppmpItemOptions = ref([])
+	// const ppmpItemOptions = ref([])
+	const accountCodesOptions = ref([])
 
-	const ppmpGeneralDescLoading = ref(true)
+	// const ppmpGeneralDescLoading = ref(true)
+	const accountCodesLoading = ref(true)
 
 	const ppmpItemFormData = reactive({
 		ppmp_id: router.params.id,
@@ -72,22 +74,41 @@
 		}
 	}
 
-	const getItems = async () => {
+	// const getItems = async () => {
+	// 	setAuthHeader()
+
+	// 	try{
+	// 		await axios.get(`${apiEndPoint}/api/list_of_department_ppmp_items_catalog`).then((res) => {
+	// 			ppmpItemOptions.value = res.data.retrievedData
+	// 		})
+	// 	}
+	// 	catch (err) {
+	// 		ElMessage({
+	// 			message: `Cannot load roles: ${err.message}`,
+	// 			type: 'error',
+	// 		})
+	// 	}
+	// 	finally {
+	// 		ppmpGeneralDescLoading.value = false
+	// 	}
+	// }
+
+	const getAccountCodes = async () => {
 		setAuthHeader()
 
-		try{
-			await axios.get(`${apiEndPoint}/api/list_of_department_ppmp_items_catalog`).then((res) => {
-				ppmpItemOptions.value = res.data.retrievedData
+		try {
+			await axios.get(`${apiEndPoint}/api/list_of_account_codes`).then((res) => {
+				accountCodesOptions.value = res.data.retrievedData
 			})
 		}
 		catch (err) {
 			ElMessage({
-				message: `Cannot load roles: ${err.message}`,
-				type: 'error',
+				message: `Cannot load account cods: ${err.message}`,
+				type: 'error'
 			})
 		}
 		finally {
-			ppmpGeneralDescLoading.value = false
+			accountCodesLoading.value = false
 		}
 	}
 
@@ -108,11 +129,11 @@
 		}
 	}
 
-	const selectItem = (item: Array) => {
-		ppmpItemFormData.general_desc = item.general_desc
-		ppmpItemFormData.unit = item.unit
-		// ppmpItemFormData.mode_of_procurement = item.mode_of_procurement
-	}
+	// const selectItem = (item: Array) => {
+	// 	ppmpItemFormData.general_desc = item.general_desc
+	// 	ppmpItemFormData.unit = item.unit
+	// 	// ppmpItemFormData.mode_of_procurement = item.mode_of_procurement
+	// }
 
 	const managePpmpItemForm = async (formType: String) => {
 		setAuthHeader()
@@ -218,7 +239,8 @@
 		}
 		else
 			getCode()
-		getItems()
+		// getItems()
+		getAccountCodes()
 	})
 </script>
 
@@ -232,7 +254,8 @@
 		    </el-col>
  			<el-col :span="16">
 			    <el-form-item label="General Description">
-			      	<el-select
+			    	<el-input v-model="ppmpItemFormData.general_desc" />
+			      	<!-- <el-select
 						v-model="ppmpItemFormData.general_desc"
 						filterable
 						placeholder="Select"
@@ -245,19 +268,32 @@
 							:value="item.general_desc"
 							@click="selectItem(item)"
 						/>
-					</el-select>
+					</el-select> -->
 			    </el-form-item>
 			</el-col>
 		</el-form-item>
 	    <div class="flex-area">
 	    	<el-col :span="8" class="input-area">
 		 		<el-form-item label="Category">
-		 			<el-input v-model="ppmpItemFormData.category" />
+		 			<!-- <el-input v-model="ppmpItemFormData.category" /> -->
+		 			<el-select
+						v-model="ppmpItemFormData.category"
+						filterable
+						placeholder="Select"
+						:loading="accountCodesLoading"
+					>
+						<el-option
+							v-for="item in accountCodesOptions"
+							:key="item.id"
+							:label="`${item.code} - ${item.account_title}`"
+							:value="`${item.code} - ${item.account_title}`"
+						/>
+					</el-select>
 				</el-form-item>
 		    </el-col>
 	    	<el-col :span="4" class="input-area">
 		 		<el-form-item label="Unit">
-		 			<el-input v-model="ppmpItemFormData.unit" readonly />
+		 			<el-input v-model="ppmpItemFormData.unit" />
 				</el-form-item>
 		    </el-col>
 	    	<el-col :span="4" class="input-area">

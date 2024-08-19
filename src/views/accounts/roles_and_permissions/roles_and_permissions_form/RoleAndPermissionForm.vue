@@ -37,8 +37,7 @@
 				purchase_request_approval: [
 					'purchaseRequestApprovalHasView',
 					'purchaseRequestApprovalHasGeneralApprove',
-					'purchaseRequestApprovalHasBacApprove',
-					'purchaseRequestApprovalHasUpdate',
+					'purchaseRequestApprovalHasUpdateDetails',
 					'purchaseRequestApprovalHasReject',
 					'purchaseRequestApprovalHasManageAttachments'
 				],
@@ -56,11 +55,11 @@
 					'ppmpApprovalHasReject',
 					'ppmpApprovalHasManageAttachments'
 				],
-				ppmp_items_catalog: [
-					'ppmpItemsCatalogHasView',
-					'ppmpItemsCatalogHasAdd',
-					'ppmpItemsCatalogHasUpdate',
-					'ppmpItemsCatalogHasRemove'
+				ppmp_items_master_list: [
+					'ppmpItemsMasterListHasView',
+					// 'ppmpItemsCatalogHasAdd',
+					// 'ppmpItemsCatalogHasUpdate',
+					// 'ppmpItemsCatalogHasRemove'
 				],
 			},
 			accounts: {
@@ -244,12 +243,10 @@
 								<br />
 								<el-checkbox :value="modules.procurement.purchase_request_approval[1]"> Approve </el-checkbox>
 								<br />
-								<el-checkbox :value="modules.procurement.purchase_request_approval[2]"> Approve (BAC) </el-checkbox>
+								<el-checkbox :value="modules.procurement.purchase_request_approval[2]"> Update Details </el-checkbox>
 								<br />
-								<el-checkbox :value="modules.procurement.purchase_request_approval[3]"> Update (BAC) </el-checkbox>
-								<br />
-								<el-checkbox :value="modules.procurement.purchase_request_approval[4]"> Reject </el-checkbox>
-								<el-checkbox :value="modules.procurement.purchase_request_approval[5]"> Manage Attachments </el-checkbox>
+								<el-checkbox :value="modules.procurement.purchase_request_approval[3]"> Reject </el-checkbox>
+								<el-checkbox :value="modules.procurement.purchase_request_approval[4]"> Manage Attachments </el-checkbox>
 							</el-checkbox-group>
 	    				</el-card>
 	    			</el-col>
@@ -259,7 +256,7 @@
     	<el-form-item>
 			<template #label>
 				<el-text class="module-title">
-					Procurement Project Management Plans
+					Procurement Project Management Plans / Annual Procurement Plans
 				</el-text>
 			</template>
     		<el-col :span="24">
@@ -271,7 +268,7 @@
 							>
 
 								<el-text class="sub-module-title" type="danger">
-			    					Manage PPMP
+			    					PPMP / APP
 			    				</el-text>
 			    				<br />
 								<el-checkbox style="margin-top: 10px" :value="modules.procurement.manage_ppmp[0]"> View </el-checkbox>
@@ -311,16 +308,16 @@
 								v-model="rolesAndPermissionsData.role_modules"
 							>
 								<el-text class="sub-module-title" type="danger">
-			    					PPMP Items Catalog
+			    					Items Master List
 			    				</el-text>
 			    				<br />
-								<el-checkbox style="margin-top: 10px" :value="modules.procurement.ppmp_items_catalog[0]"> View </el-checkbox>
+								<el-checkbox style="margin-top: 10px" :value="modules.procurement.ppmp_items_master_list[0]"> View </el-checkbox>
+								<!-- <br /> -->
+								<!-- <el-checkbox :value="modules.procurement.ppmp_items_master_list[1]"> Add </el-checkbox>
 								<br />
-								<el-checkbox :value="modules.procurement.ppmp_items_catalog[1]"> Add </el-checkbox>
+								<el-checkbox :value="modules.procurement.ppmp_items_master_list[2]"> Update </el-checkbox>
 								<br />
-								<el-checkbox :value="modules.procurement.ppmp_items_catalog[2]"> Update </el-checkbox>
-								<br />
-								<el-checkbox :value="modules.procurement.ppmp_items_catalog[3]"> Remove </el-checkbox>
+								<el-checkbox :value="modules.procurement.ppmp_items_master_list[3]"> Remove </el-checkbox> -->
 							</el-checkbox-group>
 	    				</el-card>
 	    			</el-col>

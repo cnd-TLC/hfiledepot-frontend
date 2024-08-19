@@ -205,7 +205,9 @@
 				      	</el-col>
 			      	</el-row>
 					<el-table :data="listPrTableData" border>
-						<el-table-column prop="pr_no" label-class-name="table-header" label="PR Number" sortable>
+						<el-table-column prop="id" label-class-name="table-header" label="Tracking No." sortable />
+
+						<el-table-column prop="pr_no" label-class-name="table-header" label="PR No." sortable>
 							<template #default="data">
 								<div>
 									<el-text class="remarks" size="small" v-if="data.row.status == 'Rejected' && data.row.remarks" type="danger"> {{ data.row.remarks }} </el-text>
@@ -221,8 +223,6 @@
 								<el-text> {{ data.row.requested_by }} </el-text>
 								<br />
 								<el-text size="small"> <i> {{ data.row.department }} </i> </el-text>
-								<br />
-								<el-text size="small"> {{ data.row.section }} </el-text>
 							</template>
 						</el-table-column>
 						<!-- <el-table-column prop="cash_availability" label="Cash Availability" /> -->
@@ -235,7 +235,7 @@
 						<el-table-column prop="fund" label="Fund" sortable>
 							<template #default="data">
 								<!-- ₱  -->
-								<span v-if="data.row.fund"> {{ data.row.fund }}</span>
+								<span v-if="data.row.fund"> {{ data.row.fund.split(' - ')[1] }}</span>
 								<center v-else class="n-a"> N/A </center>
 							</template>
 						</el-table-column>

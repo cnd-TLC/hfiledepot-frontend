@@ -188,12 +188,12 @@ export const frequentlyAskedQuestions = [
         "answer": "The PPMP (Project Procurement Management Plan) is a detailed plan that outlines the items needed by an office for a specific period, based on its budget and operational needs. It must be approved by the BAC (Bids and Awards Committee) before a PR can be submitted."
     },
     {
-        "question": "What is the purpose of the Items Catalog?",
-        "answer": "The Items Catalog is a list of approved items created by the BAC for each office. It serves as a reference for offices when preparing their PPMPs and ensures that all requested items are pre-approved and compliant with budgetary guidelines."
+        "question": "What is the purpose of the PPMP?",
+        "answer": "The PPMP helps in planning and managing procurement needs by outlining all items required for a specific period. This ensures that procurement is aligned with budgetary constraints and organizational needs."
     },
     {
         "question": "What are the steps to submit a PR?",
-        "answer": "To submit a purchase request, the BAC creates and provides the Items Catalog for each office, the office prepares and submits a PPMP using items from its specific catalog, the PPMP is reviewed and approved by the BAC, and once the PPMP is approved, the office can submit a PR for the items listed in the approved PPMP, which then goes through the approval process with Budget, Treasury, Mayor, BAC, CGSO, and Accounting."
+        "answer": "To submit a purchase request, the office prepares a PPMP detailing the items they need. The PPMP is reviewed and approved by the BAC. Once the PPMP is approved, the office can submit a PR for the items listed in the approved PPMP. The PR then goes through the approval process with Budget, Treasury, Mayor, BAC, CGSO, and Accounting."
     },
     {
         "question": "Who approves the PPMP?",
@@ -205,15 +205,15 @@ export const frequentlyAskedQuestions = [
     },
     {
         "question": "How does an office know which items to include in their PPMP?",
-        "answer": "Offices should refer to their specific Items Catalog provided by the BAC. This catalog lists the items that are available for procurement and that are approved for use by the office."
+        "answer": "Offices can include any items they need in their PPMP, provided these items align with their budget and operational requirements."
     },
     {
-        "question": "Can an office request items not listed in the Items Catalog?",
-        "answer": "No, offices can only request items that are listed in their specific Items Catalog. Requests for items not included will not be processed."
-    },
+	    "question": "Can an office request items not listed in the PPMP?",
+	    "answer": "No, offices must specify all items they need in their PPMP. Requests for items not included in the PPMP will not be processed."
+	},
     {
         "question": "What is the role of the BAC in this process?",
-        "answer": "The BAC is responsible for creating the Items Catalog, approving PPMPs, and ensuring that all procurement activities are conducted in compliance with established policies and regulations."
+        "answer": "The BAC is responsible for approving PPMPs and ensuring that all procurement activities comply with established policies and regulations."
     },
     {
         "question": "What happens after the PR is submitted?",

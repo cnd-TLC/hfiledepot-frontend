@@ -205,7 +205,7 @@
 										<template #default="data">
 											<el-text> {{ data.row.general_desc }} </el-text>
 											<br />
-											<el-text class="category" type="warning"> <i> {{ data.row.category }} </i> </el-text>
+											<el-text class="category" type="warning"> <i> {{ data.row.category.split(' - ')[1] }} </i> </el-text>
 										</template>
 									</el-table-column>
 									<el-table-column label="Quantity" width="120">
@@ -234,9 +234,14 @@
 			</el-col>
 			<el-col :span="6" class="space-attachments">
 	    	<el-form-item label="Attachments">
+	    		<template #label>
+	    			<el-text class="sub-module-title" type="danger">
+    					Attachments
+    				</el-text>
+	    		</template>
 					<el-skeleton animated :loading="loading">
 			      <template #template>
-			        <el-skeleton-item v-for="n in 5" variant="text" style="width: 100%" />
+			        <el-skeleton-item v-for="n in 2" variant="text" style="width: 100%" />
 			      </template>
 			      <template #default>
 			        <div v-if="ppmpFormData.attachments != null">
@@ -263,6 +268,11 @@
 <style scoped>
 	.table-border {
 		border: 1px solid var(--el-border-color-light);
+	}
+
+	.sub-module-title {
+		font-size: 14px;
+		font-weight: 500;
 	}
 
 	.print-width {

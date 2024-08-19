@@ -152,7 +152,7 @@
 							<el-icon> <eleme /> </el-icon>
 							Dashboard
 						</el-menu-item>
-						<el-menu-item-group v-if="checkPermission('purchaseRequestHasView') || checkPermission('purchaseRequestApprovalHasView') || checkPermission('managePpmpHasView') || checkPermission('ppmpApprovalHasView') || checkPermission('ppmpItemsCatalogHasView')">
+						<el-menu-item-group v-if="checkPermission('purchaseRequestHasView') || checkPermission('purchaseRequestApprovalHasView') || checkPermission('managePpmpHasView') || checkPermission('ppmpApprovalHasView') || checkPermission('ppmpItemsMasterListHasView')">
 							<template #title> Manage </template>
 							<el-sub-menu index="procurement" v-if="checkPermission('purchaseRequestHasView') || checkPermission('purchaseRequestApprovalHasView')">
 								<template #title> 
@@ -162,14 +162,14 @@
 								<el-menu-item style="padding-left: 20px" v-if="checkPermission('purchaseRequestHasView')" index="/purchase_request"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> Purchase Request </el-menu-item>
 								<el-menu-item style="padding-left: 20px" v-if="checkPermission('purchaseRequestApprovalHasView')" index="/manage_purchase_request"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> Purchase Request Approval </el-menu-item>
 							</el-sub-menu>
-							<el-sub-menu index="ppmp" v-if="checkPermission('managePpmpHasView') || checkPermission('ppmpApprovalHasView') || checkPermission('ppmpItemsCatalogHasView')">
+							<el-sub-menu index="ppmp" v-if="checkPermission('managePpmpHasView') || checkPermission('ppmpApprovalHasView') || checkPermission('ppmpItemsMasterListHasView')">
 								<template #title> 
 									<el-icon><document-copy /></el-icon>
-									PPMP 
+									Procurement Plan 
 								</template>
-								<el-menu-item style="padding-left: 20px" v-if="checkPermission('managePpmpHasView')" index="/manage_ppmp"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> Manage PPMP </el-menu-item>
+								<el-menu-item style="padding-left: 20px" v-if="checkPermission('managePpmpHasView')" index="/manage_ppmp_app"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> PPMP / APP </el-menu-item>
 								<el-menu-item style="padding-left: 20px" v-if="checkPermission('ppmpApprovalHasView')" index="/manage_ppmp_approval"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> PPMP Approval </el-menu-item>
-								<el-menu-item style="padding-left: 20px" v-if="checkPermission('ppmpItemsCatalogHasView')" index="/ppmp_items_catalog"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> PPMP Items Catalog </el-menu-item>
+								<el-menu-item style="padding-left: 20px" v-if="checkPermission('ppmpItemsMasterListHasView')" index="/ppmp_items_master_list"> <el-icon style="font-size: 10px"><arrow-right /></el-icon> PPMP Items Master List </el-menu-item>
 							</el-sub-menu>						
 						</el-menu-item-group>
 						<el-menu-item-group v-if="checkPermission('rolesAndPermissionsHasView') || checkPermission('systemUsersHasView')">

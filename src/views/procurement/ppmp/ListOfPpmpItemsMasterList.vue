@@ -3,11 +3,11 @@
 	import { useAuth } from 'vue-auth3'
 	import { ComponentSize, FormProps } from 'element-plus'
 	import { apiEndPoint } from '@/constant/data'
+	import { downloadPrItemsXlsxTemplate } from '@/constant/functions'
 	import { Search, ArrowDown, Refresh, Delete } from '@element-plus/icons-vue'
-	import { downloadItemsCatalogTemplate } from '@/constant/functions'
 	import axios from 'axios'
-	import CatalogForm from '@/views/procurement/ppmp/ppmp_catalog_form/CatalogForm.vue'
-	import RemoveForm from '@/views/procurement/ppmp/ppmp_catalog_form/RemoveForm.vue'
+	import MasterListForm from '@/views/procurement/ppmp/ppmp_master_list_form/MasterListForm.vue'
+	import RemoveForm from '@/views/procurement/ppmp/ppmp_master_list_form/RemoveForm.vue'
 	import BulkUploadForm from '@/components/dropzone/BulkUpload.vue'
 
 	const auth = useAuth()
@@ -17,7 +17,7 @@
 	const clickedRow = ref([])
 	const labelPosition = ref<FormProps['labelPosition']>('top')
 	const showBulkUploadForm = ref(false)
-	const showCatalogForm = ref(false)
+	const showMasterListForm = ref(false)
 	const showRemoveForm = ref(false)
 	const showUpdateItemForm = ref(false)
 	const totalRecords = ref(1)
@@ -28,9 +28,20 @@
 
 	let userPromise = reactive({})
 	let user = reactive({
-		permissions: []
+		permissions: [],
+		department: ''
 	})
 	let searchValue = ref('')
+
+	const setAuthHeader = () => {
+		const token = JSON.parse(localStorage.auth_token_default);
+		if(token){
+			axios.defaults.headers = {
+				accept: "application/json",
+				Authorization: `Bearer ${token}`
+			}  
+		}
+	}
 
 	const checkPermission = (val: String) => {
 		return user.permissions.includes(val)
@@ -38,8 +49,8 @@
 
 	const showForm = (formName: String, data: Array) => {
 		clickedRow.value = data
-		if (formName === 'CatalogForm')
-			showCatalogForm.value = true
+		if (formName === 'MasterListForm')
+			showMasterListForm.value = true
 		if (formName === 'UpdateForm')
 			showUpdateItemForm.value = true
 		if (formName === 'RemoveForm')
@@ -48,7 +59,7 @@
 			showBulkUploadForm.value = true
 	}
 
-	const loadCatalogItemsData = async () => {
+	const loadMasterListItemsData = async () => {
 		const token = JSON.parse(localStorage.auth_token_default);
 		if(token){
 			axios.defaults.headers = {
@@ -57,14 +68,14 @@
 			}  
 		}
 		try {
-			await axios.get(`${apiEndPoint}/api/list_of_ppmp_items_catalog/${pageSize.value}/?page=${currentPage.value}`, {
+			await axios.get(`${apiEndPoint}/api/list_of_ppmp_master_list/${pageSize.value}/?page=${currentPage.value}`, {
 					params: { search: searchValue.value }
 				}).then((res) => {
 				listPpmpItemTableData.value = res.data.retrievedData
 				totalRecords.value = res.data.total
 			})
 
-			showCatalogForm.value = false
+			showMasterListForm.value = false
 			showRemoveForm.value = false
 			showUpdateItemForm.value = false
 			showBulkUploadForm.value = false
@@ -83,6 +94,7 @@
 				Object.assign(userPromise, res)
 				userPromise = userPromise.data[0]
 				user.permissions = JSON.parse(userPromise.permissions)
+				user.department = userPromise.department
  			})
 		}
 		catch (err) {
@@ -93,29 +105,38 @@
 		}
 	}
 
+	const downloadPrItemsTemplate = () => {
+		setAuthHeader()
+		axios.get(`${apiEndPoint}/api/export_files/pr`, {
+		  responseType: 'blob',
+		}).then((res) => {
+			downloadPrItemsXlsxTemplate(res, 'null')
+		})
+	}
+
 	const handleSizeChange = (val: number) => {
 		searchValue.value = ''
-		loadCatalogItemsData()
+		loadMasterListItemsData()
 	}
 	const handleCurrentChange = (val: number) => {
 		searchValue.value = ''
-		loadCatalogItemsData()
+		loadMasterListItemsData()
 	}
 
 	const clearSearch = () => {
 		searchValue.value = ''
-		loadCatalogItemsData()
+		loadMasterListItemsData()
 	}
 
 	watch(searchValue, (newValue) => {
 		if (newValue.trim() === '') {
-			loadCatalogItemsData()
+			loadMasterListItemsData()
 		}
     })
 
 	onMounted(() => {
 		try {
-			loadCatalogItemsData()
+			loadMasterListItemsData()
 			getUserData()
 		}
 		catch (err) {
@@ -125,30 +146,20 @@
 </script>
 
 <template>
-	<el-dialog destroy-on-close :overflow="false" v-model="showCatalogForm" title="Item Form" width="400">
-		<catalog-form @manageButtonIsClicked="loadCatalogItemsData(), searchValue = ''" />
-	</el-dialog>
-	<el-dialog destroy-on-close :overflow="false" v-model="showUpdateItemForm" title="Item Form" width="400">
-		<catalog-form @manageButtonIsClicked="loadCatalogItemsData(), searchValue = ''" :data="clickedRow" :update="true" />
-	</el-dialog>
 	<el-dialog destroy-on-close :overflow="false" v-model="showRemoveForm" title="Remove Item" width="400">
-		<remove-form @removeButtonIsClicked="loadCatalogItemsData(), searchValue = ''" :data="clickedRow"/>
+		<remove-form @removeButtonIsClicked="loadMasterListItemsData(), searchValue = ''" :data="clickedRow"/>
 	</el-dialog>
 	<el-dialog destroy-on-close :overflow="false" v-model="showBulkUploadForm" title="Bulk Upload" width="600">
-		<bulk-upload-form :type="'ppmp_catalog'" :data="clickedRow" @fileUploaded="loadCatalogItemsData(), searchValue = ''" />
+		<bulk-upload-form :type="'ppmp_master_list'" :data="clickedRow" @fileUploaded="loadMasterListItemsData(), searchValue = ''" />
 	</el-dialog>
 
-	<el-text class="title"> PPMP Items Catalog </el-text>
+	<el-text class="title"> PPMP Items Master List </el-text>
 	<el-card shadow="never">
 		<el-skeleton animated :loading="loading">
 			<template #template>
-				<div class="custom-card">
-					<el-skeleton-item variant="button" style="width: 13%" />
-					&nbsp;
-					<el-skeleton-item variant="button" style="width: 13%" />
-					&nbsp;
-					<el-skeleton-item variant="button" style="width: 7%" />
-				</div>
+				<!-- <div class="custom-card" >
+					<el-skeleton-item variant="button" style="width: 13%" v-if="user.department != 'Bids and Awards Committee (BAC)'"/>
+				</div> -->
 				<el-divider />
 				<div class="custom-card">
 					<el-skeleton-item variant="text" style="width: 30%" />
@@ -161,17 +172,15 @@
 			</template>
 			<template #default>
 				<div class="custom-card">
-					<el-button type="info" v-if="checkPermission('ppmpItemsCatalogHasAdd')" @click="downloadItemsCatalogTemplate"> Download Template </el-button>
-					<el-button type="success" v-if="checkPermission('ppmpItemsCatalogHasAdd')" @click="showForm('BulkUploadForm', {id: 0})"> Bulk Upload Items </el-button>
-					<el-button type="success" v-if="checkPermission('ppmpItemsCatalogHasAdd')" @click="showForm('CatalogForm', null)"> Add Item </el-button>
+					<!-- <el-button type="info" @click="downloadPrItemsTemplate" v-if="user.department != 'Bids and Awards Committee (BAC)'"> Download asd Items </el-button> -->
 					<el-divider />
 					<el-row>
 						<el-col :span="16" />
 						<el-col :span="8">
 							<el-container class="search-area">
-						      	<el-input v-model="searchValue" placeholder="Search" clearable @keyup.enter="loadCatalogItemsData">
+						      	<el-input v-model="searchValue" placeholder="Search" clearable @keyup.enter="loadMasterListItemsData">
 						      		<template #append>
-										<el-button type="success"  @click="loadCatalogItemsData" :icon="Search" />
+										<el-button type="success"  @click="loadMasterListItemsData" :icon="Search" />
 									</template>
 						      	</el-input>
 					      	</el-container>
@@ -184,26 +193,10 @@
 							</template>
 						</el-table-column>
 						<el-table-column prop="general_desc" label="Item" sortable />
-						<el-table-column prop="department" label="Office" sortable />
+						<el-table-column prop="pmo_end_user_dept" label="Office" sortable />
 						<el-table-column label="Unit" width="150">
 							<template #default="data">
 								<el-text> {{ data.row.unit }}<span v-if="data.row.unit != null">/s</span> </el-text>
-							</template>
-						</el-table-column>
-						<!-- <el-table-column prop="mode_of_procurement" label="Mode" sortable width="150" /> -->
-						<el-table-column prop="action" v-if="checkPermission('ppmpItemsCatalogHasUpdate') || checkPermission('ppmpItemsCatalogHasRemove')" label="Action" width="120">
-							<template #default="data">
-								<el-dropdown trigger="click">
-									<el-button type="info">
-										Action &nbsp; <el-icon><arrow-down /></el-icon>
-	  								</el-button>
-									<template #dropdown>
-										<el-dropdown-menu>
-											<el-dropdown-item class="action-button" v-if="checkPermission('ppmpItemsCatalogHasUpdate')" @click="showForm('UpdateForm', data.row)"> <el-icon><Refresh /></el-icon> Update </el-dropdown-item>
-											<el-dropdown-item class="action-button" v-if="checkPermission('ppmpItemsCatalogHasRemove')" @click="showForm('RemoveForm', data.row)"> <el-text type="danger"> <el-icon><Delete /></el-icon> Remove </el-text> </el-dropdown-item>
-										</el-dropdown-menu>
-									</template>
-								</el-dropdown>
 							</template>
 						</el-table-column>
 					</el-table>

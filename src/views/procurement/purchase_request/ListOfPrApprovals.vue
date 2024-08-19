@@ -7,7 +7,7 @@
 	import { Search, ArrowDown, View, Files, Check, Refresh, Close } from '@element-plus/icons-vue'
 	import axios from 'axios'
 	import GeneralApprovalForm from '@/views/procurement/purchase_request/approval_form/GeneralApprovalForm.vue'
-	import ApprovalForm from '@/views/procurement/purchase_request/approval_form/ApprovalForm.vue'
+	import DetailsForm from '@/views/procurement/purchase_request/approval_form/DetailsForm.vue'
 	import PreviewForm from '@/views/procurement/purchase_request/pr_form/PreviewForm.vue'
 	import AttachmentForm from '@/components/dropzone/Dropzone.vue'
 	import RejectForm from '@/views/procurement/purchase_request/approval_form/RejectForm.vue'
@@ -17,8 +17,7 @@
 
 	const listPrTableData = ref([])
 	const clickedRow = ref([])
-	const showApprovalForm = ref(false)
-	const showUpdateApprovalForm = ref(false)
+	const showDetailsForm = ref(false)
 	const showPreviewForm = ref(false)
 	const showAttachmentsForm = ref(false)
 	const showRejectForm = ref(false)
@@ -31,6 +30,7 @@
 
 	let userPromise = reactive({})
 	let user = reactive({
+		department: '',
 		permissions: []
 	})
 	let searchValue = ref('')
@@ -39,14 +39,35 @@
 		return user.permissions.includes(val)
 	}
 
+	const checkStatus = (val: String, data: Array) => {
+		if (val == 'City Budget Office (CBO)')
+			if (data.approved_by_cto_name)
+				return false
+		if (val == 'City Treasurer\'s Office (CTO)')
+			if (data.approved_by_cmo_name)
+				return false
+		if (val == 'City Mayor\'s Office (CMO)')
+			if (data.approved_by_bac_name)
+				return false
+		if (val == 'Bids and Awards Committee (BAC)')
+			if (data.approved_by_cgso_name)
+				return false
+		if (val == 'City General Services Office (CGSO)')
+			if (data.approved_by_cao_name)
+				return false
+		if (val == 'City Accountant\'s Office (CAccO)')
+			if (data.approved_by_cao_name)
+				return false
+
+		return true
+	}
+
 	const showForm = (formName: string, data: Array) => {
 		clickedRow.value = data
 		if (formName === 'GeneralApprovalForm')
 			showGeneralApprovalForm.value = true
-		if (formName === 'ApprovalForm')
-			showApprovalForm.value = true
-		if (formName === 'UpdateForm')
-			showUpdateApprovalForm.value = true
+		if (formName === 'DetailsForm')
+			showDetailsForm.value = true
 		if (formName === 'PreviewForm')
 			showPreviewForm.value = true
 		if (formName === 'AttachmentsForm')
@@ -72,8 +93,7 @@
 			})
 
 			showGeneralApprovalForm.value = false
-			showApprovalForm.value = false
-			showUpdateApprovalForm.value = false
+			showDetailsForm.value = false
 			showPreviewForm.value = false
 			// showAttachmentsForm.value = false
 			showRejectForm.value = false
@@ -91,6 +111,7 @@
 			await auth.fetch().then(res => {
 				Object.assign(userPromise, res)
 				userPromise = userPromise.data[0]
+				user.department = userPromise.department
 				user.permissions = JSON.parse(userPromise.permissions)
  			})
 		}
@@ -144,11 +165,8 @@
 	<el-dialog destroy-on-close :overflow="false" v-model="showAttachmentsForm" title="PR Attachments" width="600">
 		<attachment-form :type="'pr'" :data="clickedRow" @attachmentUpdated="loadPrData(), searchValue = ''" />
 	</el-dialog>
-	<el-dialog destroy-on-close :overflow="false" v-model="showApprovalForm" title="Approve PR" width="400">
-		<approval-form :data="clickedRow" @updateButtonIsClicked="loadPrData(), searchValue = ''" />
-	</el-dialog>
-	<el-dialog destroy-on-close :overflow="false" v-model="showUpdateApprovalForm" title="Update PR" width="400">
-		<approval-form :data="clickedRow" @updateButtonIsClicked="loadPrData(), searchValue = ''" :update="true" />
+	<el-dialog destroy-on-close :overflow="false" v-model="showDetailsForm" title="PR Details" :width="user.department == 'Bids and Awards Committee (BAC)' ? '800' : '400'">
+		<details-form :data="clickedRow" :department="user.department" @updateButtonIsClicked="loadPrData(), searchValue = ''" />
 	</el-dialog>
 	<el-dialog destroy-on-close :overflow="false" v-model="showGeneralApprovalForm" title="Approve PR" width="400">
 		<general-approval-form :data="clickedRow" @approveButtonIsClicked="loadPrData(), searchValue = ''" />
@@ -192,7 +210,9 @@
 							Your Data Here
 						</template>
 					</el-table-column> -->
-					<el-table-column prop="pr_no" label="PR Number" sortable>
+					<el-table-column prop="id" label-class-name="table-header" label="Tracking No." sortable />
+
+					<el-table-column prop="pr_no" label="PR No." sortable>
 						<template #default="data">
 							<div>
 								<el-text class="remarks" size="small" v-if="data.row.status == 'Rejected' && data.row.remarks" type="danger"> {{ data.row.remarks }} </el-text>
@@ -208,8 +228,6 @@
 							<el-text> {{ data.row.requested_by }} </el-text>
 							<br />
 							<el-text size="small"> <i> {{ data.row.department }} </i> </el-text>
-							<br />
-							<el-text size="small"> {{ data.row.section }} </el-text>
 						</template>
 					</el-table-column>
 					<!-- <el-table-column prop="cash_availability" label="Cash Availability" /> -->
@@ -222,7 +240,7 @@
 					<el-table-column prop="fund" label="Fund" sortable>
 						<template #default="data">
 							<!-- ₱  -->
-							<span v-if="data.row.fund"> {{ data.row.fund }}</span>
+							<span v-if="data.row.fund"> {{ data.row.fund.split(' - ')[1] }}</span>
 							<center v-else class="n-a"> N/A </center>
 						</template>
 					</el-table-column>
@@ -243,11 +261,10 @@
 								<template #dropdown>
 									<el-dropdown-menu>
 										<el-dropdown-item @click="showForm('PreviewForm', data.row)"> <el-icon><View /></el-icon> Preview </el-dropdown-item>
-										<el-dropdown-item v-if="checkPermission('purchaseRequestApprovalHasManageAttachments') && data.row.approved_by_cao_name == null" @click="showForm('AttachmentsForm', data.row)"> <el-icon><Files /></el-icon> Attachments </el-dropdown-item>
-										<el-dropdown-item v-if="checkPermission('purchaseRequestApprovalHasGeneralApprove')" @click="showForm('GeneralApprovalForm', data.row)"> <el-icon><Check /></el-icon> Approve </el-dropdown-item>
-										<el-dropdown-item v-if="checkPermission('purchaseRequestApprovalHasBacApprove')" @click="showForm('ApprovalForm', data.row)"> <el-icon><Check /></el-icon> Approve [BAC] </el-dropdown-item>
-										<el-dropdown-item v-if="checkPermission('purchaseRequestApprovalHasUpdate')" @click="showForm('UpdateForm', data.row)"> <el-icon><Refresh /></el-icon> Update </el-dropdown-item>
-										<el-dropdown-item v-if="checkPermission('purchaseRequestApprovalHasReject')" @click="showForm('RejectForm', data.row)"> <el-text type="danger"> <el-icon><Close /></el-icon> Reject </el-text> </el-dropdown-item>
+										<el-dropdown-item v-if="checkPermission('purchaseRequestApprovalHasManageAttachments') && data.row.approved_by_cao_name == null && checkStatus(user.department, data.row)" @click="showForm('AttachmentsForm', data.row)"> <el-icon><Files /></el-icon> Attachments </el-dropdown-item>
+										<el-dropdown-item v-if="checkPermission('purchaseRequestApprovalHasUpdateDetails') && data.row.approved_by_cao_name == null && checkStatus(user.department, data.row)" @click="showForm('DetailsForm', data.row)"> <el-icon><Refresh /></el-icon> Update Details </el-dropdown-item>
+										<el-dropdown-item v-if="checkPermission('purchaseRequestApprovalHasGeneralApprove') && data.row.approved_by_cao_name == null && checkStatus(user.department, data.row)" @click="showForm('GeneralApprovalForm', data.row)"> <el-icon><Check /></el-icon> Approve </el-dropdown-item>
+										<el-dropdown-item v-if="checkPermission('purchaseRequestApprovalHasReject') && data.row.approved_by_cao_name == null && checkStatus(user.department, data.row)" @click="showForm('RejectForm', data.row)"> <el-text type="danger"> <el-icon><Close /></el-icon> Reject </el-text> </el-dropdown-item>
 									</el-dropdown-menu>
 								</template>
   							</el-dropdown>
@@ -279,6 +296,11 @@
 	.pr-no {
 		font-size: 15px;
 		font-weight: 500;
+	}
+
+	.n-a {
+		font-size: 10px;
+		font-style: italic;
 	}
 
 	.status {

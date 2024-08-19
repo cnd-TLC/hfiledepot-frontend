@@ -5,7 +5,7 @@
 	import { formatNumber } from '@/constant/functions'
 	import { useRouter } from 'vue-router'
 	import { ArrowDown, Refresh, Delete } from '@element-plus/icons-vue'
-	import { downloadBlob } from '@/constant/functions'
+	import { downloadBlob, downloadPpmpItemsTemplate } from '@/constant/functions'
 	import axios from 'axios'
 	import ItemForm from '@/views/procurement/ppmp/ppmp_item_form/ItemForm.vue'
 	import RemoveForm from '@/views/procurement/ppmp/ppmp_item_form/RemoveForm.vue'
@@ -74,15 +74,6 @@
 		}
 	}
 
-	const downloadPpmpItemsTemplate = () => {
-		setAuthHeader()
-		axios.get(`${apiEndPoint}/api/export_files/ppmp/${router.params.id}`, {
-		  responseType: 'blob',
-		}).then((res) => {
-			downloadBlob(res)
-		})
-	}
-
 	const handleSizeChange = (val: number) => {
 		loadPpmpItemData()
 	}
@@ -115,7 +106,7 @@
 	</el-dialog>
 
 	<el-text class="title"> PPMP Request Items List </el-text>
-	<el-card shadow="never">
+	<!-- <el-card shadow="never">
 		<el-skeleton animated :loading="loading">
 			<template #template>
 				<el-skeleton-item variant="text" style="width: 12%" />
@@ -137,11 +128,11 @@
 				<br/>
 				<el-text class="card-title"> Source of Funds : <el-text class="card-title-content"> {{ router.params.source_of_funds }} </el-text> </el-text>
 				<br/>
-				<!-- <el-text> Received By : </el-text>
-				<br/> -->
+				<el-text> Received By : </el-text>
+				<br/> comment dito
 			</template>
 		</el-skeleton>
-	</el-card>
+	</el-card> -->
 	<el-card shadow="never">
 		<el-skeleton animated :loading="loading">
 			<template #template>
@@ -161,7 +152,7 @@
 			</template>
 			<template #default>
 				<div class="custom-card">
-					<el-button type="info" @click="downloadPpmpItemsTemplate"> Download Template </el-button>
+					<el-button type="info" @click="downloadPpmpItemsTemplate(router.params.id)"> Download Template </el-button>
 					<el-button type="success" @click="showForm('BulkUploadForm', router.params)"> Bulk Upload Items </el-button>
 					<el-button type="success" @click="showForm('ItemForm', null)"> Add Item </el-button>
 					<el-divider />
@@ -281,7 +272,7 @@
 								<template #default="data">
 									<el-text> {{ data.row.general_desc }} </el-text>
 									<br />
-									<el-text class="category" type="warning"> <i> {{ data.row.category }} </i> </el-text>
+									<el-text class="category" type="warning"> <i> {{ data.row.category.split(' - ')[1] }} </i> </el-text>
 								</template>
 							</el-table-column>
 							<el-table-column label="Quantity" width="120">

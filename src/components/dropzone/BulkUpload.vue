@@ -46,13 +46,13 @@
     .then((res) => {
       ElMessage({
         message: res.data.message,
-        type: 'success',
+        type: res.data.status == 'success' ? 'success' : 'error',
       })
       emit('fileUploaded')
     })
     .catch((err) => {
       ElMessage({
-        message: `Cannot reject: ${err.message}`,
+        message: `Cannot upload, check your excel file.`,
         type: 'error',
       })
     });

@@ -20,7 +20,12 @@ a,
 }
 
 .el-menu--horizontal>.el-sub-menu.is-active .el-sub-menu__title {
+  color: var(--el-menu-text-color) !important;
   border-bottom: 0 !important;
+}
+
+.el-menu--horizontal .el-menu .el-menu-item.is-active, .el-menu--horizontal .el-menu .el-sub-menu.is-active>.el-sub-menu__title {
+  color: var(--el-menu-text-color) !important;
 }
 
 .el-dropdown-menu__item:not(.is-disabled):focus, 

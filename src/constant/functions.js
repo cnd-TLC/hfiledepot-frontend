@@ -1,7 +1,7 @@
 import { saveAs } from 'file-saver';
 import { PDFDocument } from 'pdf-lib';
 import PrTemplate from "@/assets/templates/a1geHJRFRtRExjUabVgC.dat";
-import ItemsCatalogTemplate from "@/assets/templates/k9LmNQOZpWvRbYcFsJTd.dat";
+import PpmpItemsTemplate from "@/assets/templates/k9LmNQOZpWvRbYcFsJTd.dat";
 import axios from 'axios'
 
 
@@ -82,18 +82,25 @@ export const downloadPr = async (data, items) => {
 	}
 }
 
-export const downloadItemsCatalogTemplate = async () => {
+export const downloadPpmpItemsTemplate = async (id) => {
 	try {
-		const response = await axios.get(ItemsCatalogTemplate, { responseType: 'blob' })
+		const response = await axios.get(PpmpItemsTemplate, { responseType: 'blob' })
         if (response.status !== 200) 
           throw new Error('Failed to fetch XLSX')
 
     let filename = generateRandomString(20)
 
 		const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
-		saveAs(blob, filename + '.xlsx')
+		saveAs(blob, `ppmpid(${id})_${filename}.xlsx`)
 	}
 	catch (err) {
 		console.log('Printing template error: ', err)
 	}
+}
+
+export const downloadPrItemsXlsxTemplate = (res, id) => {
+	let filename = generateRandomString(20)
+
+	const blob = new Blob([res.data], { type: res.headers['content-type'] })
+  saveAs(blob, `prid(${id})_${filename}`);
 }
