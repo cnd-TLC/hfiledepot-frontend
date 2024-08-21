@@ -1,11 +1,14 @@
 <script lang='ts' setup>
-	import { ref, onMounted } from 'vue'
+	import { reactive, ref, onMounted } from 'vue'
+	import { useAuth } from 'vue-auth3'
 	import { useTransition } from '@vueuse/core'
 	import { DocumentChecked, DocumentDelete, Promotion, Check, Close } from '@element-plus/icons-vue'
 	import { activities, apiEndPoint, frequentlyAskedQuestions } from '@/constant/data'
 	import apexChartTotalApprovedRequests from '@/components/charts/ApexChartTotalApprovedRequests.vue'
 	import apexChartTotalRequestsPerOffice from '@/components/charts/ApexChartTotalRequestsPerOffice.vue'
 	import axios from 'axios'
+
+	const auth = useAuth()
 
 	const approvedRequestChartKey = ref(0)
 	const officeRequestChartKey = ref(0)
@@ -27,6 +30,11 @@
 	const loadingOfficeRequests = ref(false)
 	const loadingTimeline = ref(false)
 	const selectedYear = ref(new Date())
+
+	let userPromise = reactive({})
+	let user = reactive({
+		permissions: [],
+	})
 
 	const reloadApprovedRequestChart = () => {
 		approvedRequestChartKey.value += 1; 
@@ -56,6 +64,10 @@
 				Authorization: `Bearer ${token}`
 			}  
 		}
+	}
+
+	const checkPermission = (val: String) => {
+		return user.permissions.includes(val)
 	}
 
 	const getRequestsForApproval = () => {
@@ -235,11 +247,25 @@
 		getNotifications()
 	}
 
+	const getUserData = async () => {
+		try {
+			await auth.fetch().then(res => {
+				Object.assign(userPromise, res)
+				userPromise = userPromise.data[0]
+				user.permissions = JSON.parse(userPromise.permissions)
+ 			})
+		}
+		catch (err) {
+			console.log('Retrieving user data failed: ', err)
+		}
+	}
+
 	onMounted(() => {
 		getDepartmentRequestscount()
 		getNotifications()
 		getRequestsForApproval()
 		getOfficeRequests()
+		getUserData()
 	})
 
 </script>
@@ -259,7 +285,7 @@
 				</el-form-item>
 			</el-col>
 			<el-row>
-				<el-col :span="8">
+				<el-col :span="8" v-if="checkPermission('dashboardHasRequestCards')">
 					<el-card shadow="never">
 						<div class="summary-area">
 							<div>
@@ -282,7 +308,7 @@
 						</div>
 					</el-card>
 				</el-col>
-				<el-col :span="8">
+				<el-col :span="8" v-if="checkPermission('dashboardHasRequestCards')">
 					<el-card shadow="never" >
 						<div class="summary-area">
 							<div>
@@ -305,7 +331,7 @@
 						</div>
 					</el-card>
 				</el-col>
-				<el-col :span="8">
+				<el-col :span="8" v-if="checkPermission('dashboardHasRequestCards')">
 					<el-card shadow="never">
 						<div class="summary-area">
 							<div>
@@ -328,7 +354,7 @@
 						</div>
 					</el-card>
 				</el-col>
-				<el-col :span="24">
+				<el-col :span="24" v-if="checkPermission('dashboardHasApprovalChart')">
 					<el-card shadow="never" class="chart">
 						<el-text class="chart-card-title"> Office Approval Ratings </el-text>
 						<br />
@@ -342,7 +368,7 @@
 						</el-skeleton>
 					</el-card>
 				</el-col>
-				<el-col :span="24">
+				<el-col :span="24" v-if="checkPermission('dashboardHasOfficeRequestChart')">
 					<el-card shadow="never" class="chart">
 						<el-text class="chart-card-title"> Total Requests per Office </el-text>
 						<br />

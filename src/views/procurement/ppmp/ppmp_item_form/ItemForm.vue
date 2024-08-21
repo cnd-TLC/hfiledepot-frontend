@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 	import { reactive, ref, onMounted, computed } from 'vue'
-	import type { FormProps } from 'element-plus'
-	import { apiEndPoint } from '@/constant/data'
+	import type { FormProps, FormInstance, FormRules } from 'element-plus'
+	import { apiEndPoint, validations } from '@/constant/data'
 	import { ElMessage } from 'element-plus'
 	import { useRouter } from 'vue-router'
 	import axios from 'axios'
@@ -10,19 +10,34 @@
 
 	const labelPosition = ref<FormProps['labelPosition']>('top')
 	const emit = defineEmits(['manageButtonIsClicked'])
+	const rulePpmpItemFormRef = ref<FormInstance>()
 
-	const props = defineProps({
-		update: Boolean,
-		data: Object
-	})
+	interface RuleForm {
+		ppmp_id: number,
+		code: string,
+		category: string,
+		general_desc: string,
+		unit: string,
+		lumpsum: boolean,
+		mode_of_procurement: string,
+		estimated_budget: float,
+		jan: string,
+		feb: string,
+		mar: string,
+		apr: string,
+		may: string,
+		jun: string,
+		jul: string,
+		aug: string,
+		sept: string,
+		oct: string,
+		nov: string,
+		dec: string,
+	}
 
-	// const ppmpItemOptions = ref([])
-	const accountCodesOptions = ref([])
+	const rules = reactive<FormRules<RuleForm>>(validations)
 
-	// const ppmpGeneralDescLoading = ref(true)
-	const accountCodesLoading = ref(true)
-
-	const ppmpItemFormData = reactive({
+	const ppmpItemFormData = reactive<RuleForm>({
 		ppmp_id: router.params.id,
 		code: '',
 		category: '',
@@ -30,7 +45,7 @@
 		unit: '',
 		lumpsum: false,
 		mode_of_procurement: '',
-		estimated_budget: 0.00,
+		estimated_budget: '',
 		jan: '',
 		feb: '',
 		mar: '',
@@ -44,6 +59,17 @@
 		nov: '',
 		dec: '',
 	})
+
+	const props = defineProps({
+		update: Boolean,
+		data: Object
+	})
+
+	// const ppmpItemOptions = ref([])
+	const accountCodesOptions = ref([])
+
+	// const ppmpGeneralDescLoading = ref(true)
+	const accountCodesLoading = ref(true)
 
 	const totalQuantity = computed (() => {
 		return [
@@ -135,82 +161,89 @@
 	// 	// ppmpItemFormData.mode_of_procurement = item.mode_of_procurement
 	// }
 
-	const managePpmpItemForm = async (formType: String) => {
+	const managePpmpItemForm = async (formType: String, elForm: FormInstance | undefined) => {
 		setAuthHeader()
-
-		try{
-			managePpmpItemButtonIsDisabled.value = true
-			if (formType === 'submit'){
-				await axios.post(`${apiEndPoint}/api/add_ppmp_items`, { 
-					ppmp_id: ppmpItemFormData.ppmp_id,
-					code: ppmpItemFormData.code,
-					category: ppmpItemFormData.category,
-					general_desc: ppmpItemFormData.general_desc,
-					unit: ppmpItemFormData.unit,
-					quantity: totalQuantity.value,
-					lumpsum: ppmpItemFormData.lumpsum,
-					mode_of_procurement: ppmpItemFormData.mode_of_procurement,
-					estimated_budget: ppmpItemFormData.estimated_budget,
-					jan: ppmpItemFormData.jan,
-					feb: ppmpItemFormData.feb,
-					mar: ppmpItemFormData.mar,
-					apr: ppmpItemFormData.apr,
-					may: ppmpItemFormData.may,
-					jun: ppmpItemFormData.jun,
-					jul: ppmpItemFormData.jul,
-					aug: ppmpItemFormData.aug,
-					sept: ppmpItemFormData.sept,
-					oct: ppmpItemFormData.oct,
-					nov: ppmpItemFormData.nov,
-					dec: ppmpItemFormData.dec
-				}).then((res) => {
+		if (!elForm) 
+			return
+		managePpmpItemButtonIsDisabled.value = true
+		await elForm.validate((valid, fields) => {
+			if (valid) {
+				try{
+					if (formType === 'submit'){
+						axios.post(`${apiEndPoint}/api/add_ppmp_items`, { 
+							ppmp_id: ppmpItemFormData.ppmp_id,
+							code: ppmpItemFormData.code,
+							category: ppmpItemFormData.category,
+							general_desc: ppmpItemFormData.general_desc,
+							unit: ppmpItemFormData.unit,
+							quantity: totalQuantity.value,
+							lumpsum: ppmpItemFormData.lumpsum,
+							mode_of_procurement: ppmpItemFormData.mode_of_procurement,
+							estimated_budget: ppmpItemFormData.estimated_budget,
+							jan: ppmpItemFormData.jan,
+							feb: ppmpItemFormData.feb,
+							mar: ppmpItemFormData.mar,
+							apr: ppmpItemFormData.apr,
+							may: ppmpItemFormData.may,
+							jun: ppmpItemFormData.jun,
+							jul: ppmpItemFormData.jul,
+							aug: ppmpItemFormData.aug,
+							sept: ppmpItemFormData.sept,
+							oct: ppmpItemFormData.oct,
+							nov: ppmpItemFormData.nov,
+							dec: ppmpItemFormData.dec
+						}).then((res) => {
+							ElMessage({
+								message: res.data.message,
+								type: 'success',
+							})
+							managePpmpItemButtonIsDisabled.value = false
+						})
+					}
+					else{
+						axios.put(`${apiEndPoint}/api/update_ppmp_items/${props.data.id}`, {
+							ppmp_id: ppmpItemFormData.ppmp_id,
+							code: ppmpItemFormData.code,
+							category: ppmpItemFormData.category,
+							general_desc: ppmpItemFormData.general_desc,
+							unit: ppmpItemFormData.unit,
+							quantity: totalQuantity.value,
+							lumpsum: ppmpItemFormData.lumpsum,
+							mode_of_procurement: ppmpItemFormData.mode_of_procurement,
+							estimated_budget: ppmpItemFormData.estimated_budget,
+							jan: ppmpItemFormData.jan,
+							feb: ppmpItemFormData.feb,
+							mar: ppmpItemFormData.mar,
+							apr: ppmpItemFormData.apr,
+							may: ppmpItemFormData.may,
+							jun: ppmpItemFormData.jun,
+							jul: ppmpItemFormData.jul,
+							aug: ppmpItemFormData.aug,
+							sept: ppmpItemFormData.sept,
+							oct: ppmpItemFormData.oct,
+							nov: ppmpItemFormData.nov,
+							dec: ppmpItemFormData.dec
+						}).then((res) => {
+							ElMessage({
+								message: res.data.message,
+								type: 'success',
+							})
+							managePpmpItemButtonIsDisabled.value = false
+						})
+					}
+					emit('manageButtonIsClicked')
+				}
+				catch (err) {
 					ElMessage({
-						message: res.data.message,
-						type: 'success',
+						message: `Cannot submit form: ${err.message}`,
+						type: 'error',
 					})
-				})
+					managePpmpItemButtonIsDisabled.value = false
+				}
 			}
-			else{
-				await axios.put(`${apiEndPoint}/api/update_ppmp_items/${props.data.id}`, {
-					ppmp_id: ppmpItemFormData.ppmp_id,
-					code: ppmpItemFormData.code,
-					category: ppmpItemFormData.category,
-					general_desc: ppmpItemFormData.general_desc,
-					unit: ppmpItemFormData.unit,
-					quantity: totalQuantity.value,
-					lumpsum: ppmpItemFormData.lumpsum,
-					mode_of_procurement: ppmpItemFormData.mode_of_procurement,
-					estimated_budget: ppmpItemFormData.estimated_budget,
-					jan: ppmpItemFormData.jan,
-					feb: ppmpItemFormData.feb,
-					mar: ppmpItemFormData.mar,
-					apr: ppmpItemFormData.apr,
-					may: ppmpItemFormData.may,
-					jun: ppmpItemFormData.jun,
-					jul: ppmpItemFormData.jul,
-					aug: ppmpItemFormData.aug,
-					sept: ppmpItemFormData.sept,
-					oct: ppmpItemFormData.oct,
-					nov: ppmpItemFormData.nov,
-					dec: ppmpItemFormData.dec
-				}).then((res) => {
-					ElMessage({
-						message: res.data.message,
-						type: 'success',
-					})
-				})
-			}
-			emit('manageButtonIsClicked')
-		}
-		catch (err) {
-			ElMessage({
-				message: `Cannot submit form: ${err.message}`,
-				type: 'error',
-			})
-		}
-		finally {
-			managePpmpItemButtonIsDisabled.value = false
-		}
+			else
+				managePpmpItemButtonIsDisabled.value = false
+		})
 	}
 
 	onMounted(() => {
@@ -245,7 +278,7 @@
 </script>
 
 <template>
- 	<el-form :model="ppmpItemFormData" label-width="auto" :label-position="labelPosition">
+ 	<el-form ref="rulePpmpItemFormRef" :model="ppmpItemFormData" :rules="rules" label-width="auto" :label-position="labelPosition">
  		<el-form-item>
  			<el-col :span="8" class="input-area">
 		 		<el-form-item label="Code">
@@ -253,7 +286,7 @@
 				</el-form-item>
 		    </el-col>
  			<el-col :span="16">
-			    <el-form-item label="General Description">
+			    <el-form-item label="General Description" prop="general_desc">
 			    	<el-input v-model="ppmpItemFormData.general_desc" />
 			      	<!-- <el-select
 						v-model="ppmpItemFormData.general_desc"
@@ -274,7 +307,7 @@
 		</el-form-item>
 	    <div class="flex-area">
 	    	<el-col :span="8" class="input-area">
-		 		<el-form-item label="Category">
+		 		<el-form-item label="Category" prop="category">
 		 			<!-- <el-input v-model="ppmpItemFormData.category" /> -->
 		 			<el-select
 						v-model="ppmpItemFormData.category"
@@ -306,7 +339,7 @@
 				</el-form-item>
 		    </el-col>
 	    	<el-col :span="4" class="input-area">
-		 		<el-form-item label="Mode of Procurement">
+		 		<el-form-item label="Mode of Procurement" prop="mode_of_procurement">
 		 			<!-- <el-input v-model="ppmpItemFormData.mode_of_procurement" readonly /> -->
 					<el-select
 						v-model="ppmpItemFormData.mode_of_procurement"
@@ -324,7 +357,7 @@
 				</el-form-item>
 		    </el-col>
 	    	<el-col :span="4">
-		 		<el-form-item label="Estimated Budget (₱)">
+		 		<el-form-item label="Estimated Budget (₱)" prop="estimated_budget">
 			      	<el-input type="number" v-model="ppmpItemFormData.estimated_budget" :min="0.00" x:precision="2" :step="0.1" />
 				</el-form-item>
 		    </el-col>
@@ -434,9 +467,9 @@
 	    		</el-form-item>
 	    	</el-col>
 	    </el-form-item>
-	    <el-button v-if="props.update" size="large" class="submit-width" type="warning" @click="managePpmpItemForm('update')" :disabled="managePpmpItemButtonIsDisabled"> Update </el-button> 
+	    <el-button v-if="props.update" size="large" class="submit-width" type="warning" @click="managePpmpItemForm('update', rulePpmpItemFormRef)" :disabled="managePpmpItemButtonIsDisabled"> Update </el-button> 
 
-	    <el-button v-else size="large" class="submit-width" type="success" @click="managePpmpItemForm('submit')" :disabled="managePpmpItemButtonIsDisabled"> Add </el-button> 
+	    <el-button v-else size="large" class="submit-width" type="success" @click="managePpmpItemForm('submit', rulePpmpItemFormRef)" :disabled="managePpmpItemButtonIsDisabled"> Add </el-button> 
   	</el-form>
 </template>
 

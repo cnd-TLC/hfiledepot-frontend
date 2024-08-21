@@ -1,29 +1,59 @@
 <script lang="ts" setup>
 	import { reactive, ref, onMounted } from 'vue'
-	import type { FormProps } from 'element-plus'
-	import { apiEndPoint } from '@/constant/data'
+	import type { FormProps, FormInstance, FormRules } from 'element-plus'
+	import { apiEndPoint, validations } from '@/constant/data'
 	import { ElMessage } from 'element-plus'
 	import axios from 'axios'
 	
 	const labelPosition = ref<FormProps['labelPosition']>('top')
 	const emit = defineEmits(['manageButtonIsClicked'])
+	const ruleRoleFormRef = ref<FormInstance>()
+
+	interface RuleForm {
+		role: string,
+		description: string,
+	}
+
+	const rules = reactive<FormRules<RuleForm>>(validations)
+
+	const rolesAndPermissionsData = reactive<RuleForm>({
+		role: '',
+		description: '',
+		role_modules: []
+	})
 
 	const props = defineProps({
 		update: Boolean,
 		data: Object
 	})
 
+	interface RuleForm {
+		id: string,
+		name: string,
+		email: string,
+		username: string,
+		department: string,
+		role: string,
+		status: string,
+		old_password: string,
+		new_password: string,
+		retype_password: string,
+	}
+
 	const ppmpGeneralDescLoading = ref(true)
 	const modeOfProcurementLoading = ref(false)
 	const activeCollapse = ref('Dashboard')
 	const modules = {
 			dashboard: {
-				purchased_orders: [
-					'purchaseOrdersHasView'
+				request_cards: [
+					'dashboardHasRequestCards'
 				],
-				total_spend_on_procurement: [
-					'totalSpendOnProcurementHasView'
-				]
+				approval_chart: [
+					'dashboardHasApprovalChart'
+				],
+				office_request_chart: [
+					'dashboardHasOfficeRequestChart'
+				],
 			},
 			procurement: {
 				purchase_request: [
@@ -78,15 +108,9 @@
 			}
 		}
 
-	const rolesAndPermissionsData = reactive({
-		role: '',
-		description: '',
-		role_modules: []
-	})
-
 	const manageRolesAndPermissionButtonIsDisabled = ref(false)
 
-	const manageRolesAndPermissionsForm = async (formType: String) => {
+	const manageRolesAndPermissionsForm = async (formType: String, elForm: FormInstance | undefined) => {
 		const token = JSON.parse(localStorage.auth_token_default);
 		if(token){
 			axios.defaults.headers = {
@@ -94,43 +118,51 @@
 				Authorization: `Bearer ${token}`
 			}  
 		}
-		try{
-			if (formType === 'submit'){
-				await axios.post(`${apiEndPoint}/api/add_roles_and_permissions`, { 
-					role: rolesAndPermissionsData.role,
-					description: rolesAndPermissionsData.description,
-					role_modules: JSON.stringify(rolesAndPermissionsData.role_modules),
-				}).then((res) => {
+		if (!elForm)
+			return
+		manageRolesAndPermissionButtonIsDisabled.value = true
+		await elForm.validate((valid, fields) => {
+			if(valid) {
+				try{
+					if (formType === 'submit'){
+						axios.post(`${apiEndPoint}/api/add_roles_and_permissions`, { 
+							role: rolesAndPermissionsData.role,
+							description: rolesAndPermissionsData.description,
+							role_modules: JSON.stringify(rolesAndPermissionsData.role_modules),
+						}).then((res) => {
+							ElMessage({
+								message: res.data.message,
+								type: 'success',
+							})
+							manageRolesAndPermissionButtonIsDisabled.value = false
+						})
+					}
+					else{
+						axios.put(`${apiEndPoint}/api/update_roles_and_permissions/${props.data.id}`, {
+							role: rolesAndPermissionsData.role,
+							description: rolesAndPermissionsData.description,
+							role_modules: rolesAndPermissionsData.role_modules,
+						}).then((res) => {
+							ElMessage({
+								message: res.data.message,
+								type: 'success',
+							})
+							manageRolesAndPermissionButtonIsDisabled.value = false
+						})
+					}
+					emit('manageButtonIsClicked')
+				}
+				catch (err) {
 					ElMessage({
-						message: res.data.message,
-						type: 'success',
+						message: `Cannot submit form: ${err.message}`,
+						type: 'error',
 					})
-				})
+					manageRolesAndPermissionButtonIsDisabled.value = false
+				}
 			}
-			else{
-				await axios.put(`${apiEndPoint}/api/update_roles_and_permissions/${props.data.id}`, {
-					role: rolesAndPermissionsData.role,
-					description: rolesAndPermissionsData.description,
-					role_modules: rolesAndPermissionsData.role_modules,
-				}).then((res) => {
-					ElMessage({
-						message: res.data.message,
-						type: 'success',
-					})
-				})
-			}
-			manageRolesAndPermissionButtonIsDisabled.value = true
-			emit('manageButtonIsClicked')
-		}
-		catch (err) {
-			ElMessage({
-				message: `Cannot submit form: ${err.message}`,
-				type: 'error',
-			})
-		}
-		finally {
-			manageRolesAndPermissionButtonIsDisabled.value = false
-		}
+			else
+				manageRolesAndPermissionButtonIsDisabled.value = false
+		})
 	}
 
 	onMounted(() => {
@@ -145,15 +177,15 @@
 </script>
 
 <template>
- 	<el-form :model="rolesAndPermissionsData" label-width="auto" :label-position="labelPosition">
+ 	<el-form ref="ruleRoleFormRef" :model="rolesAndPermissionsData"  :rules="rules" label-width="auto" :label-position="labelPosition">
  		<el-form-item>
  			<el-col :span="4" class="input-area">
-		 		<el-form-item label="Role Name">
+		 		<el-form-item label="Role Name" prop="role">
 		 			<el-input v-model="rolesAndPermissionsData.role" />
 				</el-form-item>
 		    </el-col>
  			<el-col :span="16">
-		 		<el-form-item label="Description">
+		 		<el-form-item label="Description" prop="description">
 		 			<el-input v-model="rolesAndPermissionsData.description" />
 				</el-form-item>
 			</el-col>
@@ -177,10 +209,10 @@
 								v-model="rolesAndPermissionsData.role_modules"
 							>
 								<el-text class="sub-module-title" type="danger">
-			    					Purchased Orders
+			    					Request Cards
 			    				</el-text>
 			    				<br />
-								<el-checkbox style="margin-top: 10px" :value="modules.dashboard.purchased_orders[0]"> View </el-checkbox>
+								<el-checkbox style="margin-top: 10px" :value="modules.dashboard.request_cards[0]"> View </el-checkbox>
 							</el-checkbox-group>
 	    				</el-card>
 	    			</el-col>
@@ -190,10 +222,23 @@
 								v-model="rolesAndPermissionsData.role_modules"
 							>
 								<el-text class="sub-module-title" type="danger">
-			    					Another Module
+			    					Approval Chart
 			    				</el-text>
 			    				<br />
-								<el-checkbox style="margin-top: 10px" :value="modules.dashboard.total_spend_on_procurement[0]"> View </el-checkbox>
+								<el-checkbox style="margin-top: 10px" :value="modules.dashboard.approval_chart[0]"> View </el-checkbox>
+							</el-checkbox-group>
+	    				</el-card>
+	    			</el-col>
+	    			<el-col :span="4" class="input-area">
+	    				<el-card class="custom-card" shadow="never">
+	    					<el-checkbox-group
+								v-model="rolesAndPermissionsData.role_modules"
+							>
+								<el-text class="sub-module-title" type="danger">
+			    					Office Requests Chart
+			    				</el-text>
+			    				<br />
+								<el-checkbox style="margin-top: 10px" :value="modules.dashboard.office_request_chart[0]"> View </el-checkbox>
 							</el-checkbox-group>
 	    				</el-card>
 	    			</el-col>
@@ -373,9 +418,9 @@
 	    		</el-row>
 	    	</el-col>
 	    </el-form-item>
-	    <el-button v-if="props.update" size="large" class="submit-width" type="warning" @click="manageRolesAndPermissionsForm('update')" :disabled="manageRolesAndPermissionButtonIsDisabled"> Update </el-button> 
+	    <el-button v-if="props.update" size="large" class="submit-width" type="warning" @click="manageRolesAndPermissionsForm('update', ruleRoleFormRef)" :disabled="manageRolesAndPermissionButtonIsDisabled"> Update </el-button> 
 
-	    <el-button v-else size="large" class="submit-width" type="success" @click="manageRolesAndPermissionsForm('submit')" :disabled="manageRolesAndPermissionButtonIsDisabled"> Add </el-button> 
+	    <el-button v-else size="large" class="submit-width" type="success" @click="manageRolesAndPermissionsForm('submit', ruleRoleFormRef)" :disabled="manageRolesAndPermissionButtonIsDisabled"> Add </el-button> 
   	</el-form>
 </template>
 

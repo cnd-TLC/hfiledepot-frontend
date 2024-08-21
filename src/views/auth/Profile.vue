@@ -1,27 +1,33 @@
 <script lang='ts' setup>
 	import { ref, reactive, onMounted } from 'vue'
 	import { useAuth } from 'vue-auth3'
-	import type { FormProps } from 'element-plus'
+	import type { FormProps, FormInstance, FormRules } from 'element-plus'
 	import { ElMessage } from 'element-plus'
-	import { apiEndPoint, listOfDepartments } from '@/constant/data'
+	import { apiEndPoint, listOfDepartments, validations } from '@/constant/data'
 	import axios from 'axios'
 	import LogoutForm from '@/views/auth/LogoutForm.vue'
 
 	const emit = defineEmits(['updateUserInfo'])
 	const labelPosition = ref<FormProps['labelPosition']>('top')
+	const ruleUserFormRef = ref<FormInstance>()
+	const rulePasswordFormRef = ref<FormInstance>()
 
-	const auth = useAuth()
-	const sessionHistory = ref([])
-	const systemUserRoleOption = ref([])
-	const showLogoutAll = ref(false)
-	const roleLoading = ref(true)
-	const userInformationLoading = ref(true)
-	const updateUserButtonIsDisabled = ref(false)
-	const updatePasswordButtonIsDisabled = ref(false)
+	interface RuleForm {
+		id: string,
+		name: string,
+		email: string,
+		username: string,
+		department: string,
+		role: string,
+		status: string,
+		old_password: string,
+		new_password: string,
+		retype_password: string,
+	}
 
-	let userPromise = reactive({})
+	const rules = reactive<FormRules<RuleForm>>(validations)
 
-	const systemUserFormData = reactive({
+	const systemUserFormData = reactive<RuleForm>({
 		id: '',
 		name: '',
 		email: '',
@@ -34,6 +40,17 @@
 		retype_password: ''
 	})
 
+	const auth = useAuth()
+	const sessionHistory = ref([])
+	const systemUserRoleOption = ref([])
+	const showLogoutAll = ref(false)
+	const roleLoading = ref(true)
+	const userInformationLoading = ref(true)
+	const updateUserButtonIsDisabled = ref(false)
+	const updatePasswordButtonIsDisabled = ref(false)
+
+	let userPromise = reactive({})
+
 	const setAuthHeader = () => {
 		const token = JSON.parse(localStorage.auth_token_default);
 		if(token){
@@ -44,64 +61,84 @@
 		}
 	}
 
-	const updateUserInfo = async () => {
+	const updateUserInfo = async (elForm: FormInstance | undefined) => {
 		setAuthHeader()
-		try{
-			updateUserButtonIsDisabled.value = true
-			await axios.put(`${apiEndPoint}/api/update_users/${systemUserFormData.id}`, {
-				name: systemUserFormData.name,
-				email: systemUserFormData.email,
-				username: systemUserFormData.username,
-				department: systemUserFormData.department,
-				role: systemUserFormData.role,
-				status: systemUserFormData.status,
-			}).then((res) => {
-				ElMessage({
-					message: res.data.message,
-					type: 'success',
-				})
-			})
-		}
-		catch (err) {
-			ElMessage({
-				message: `Cannot submit form: ${err.message}`,
-				type: 'error',
-			})
-		}
-		finally {
-			updateUserButtonIsDisabled.value = false
-			emit('updateUserInfo')
-		}
+		if (!elForm) 
+			return
+		updateUserButtonIsDisabled.value = true
+		await elForm.validate((valid, fields) => {
+			if (valid){
+				try{
+					axios.put(`${apiEndPoint}/api/update_users/${systemUserFormData.id}`, {
+						name: systemUserFormData.name,
+						email: systemUserFormData.email,
+						username: systemUserFormData.username,
+						department: systemUserFormData.department,
+						role: systemUserFormData.role,
+						status: systemUserFormData.status,
+					}).then((res) => {
+						ElMessage({
+							message: res.data.message,
+							type: 'success',
+						})
+						updateUserButtonIsDisabled.value = false
+					})
+				}
+				catch (err) {
+					ElMessage({
+						message: `Cannot submit form: ${err.message}`,
+						type: 'error',
+					})
+					updateUserButtonIsDisabled.value = false
+				}
+				finally {
+					emit('updateUserInfo')
+				}
+			}
+			else
+				updateUserButtonIsDisabled.value = false
+		})
 	}
 
-	const updatePassword = async () => {
+	const updatePassword = async (elForm: FormInstance | undefined) => {
 		setAuthHeader()
-		try{
-			updatePasswordButtonIsDisabled.value = true
-			await axios.put(`${apiEndPoint}/api/update_password`, {
-				old_password: systemUserFormData.old_password,
-				new_password: systemUserFormData.new_password,
-				retype_password: systemUserFormData.retype_password,
-			}).then((res) => {
-				ElMessage({
-					message: res.data.message,
-					type: res.data.status == 'success' ? 'success' : 'error',
-				})
-				systemUserFormData.old_password = ''
-				systemUserFormData.new_password = ''
-				systemUserFormData.retype_password = ''
-			})
-		}
-		catch (err) {
-			ElMessage({
-				message: `Cannot submit form: ${err.message}`,
-				type: 'error',
-			})
-		}
-		finally {
-			updatePasswordButtonIsDisabled.value = false
-			emit('updateUserInfo')
-		}
+		if (!elForm) 
+			return
+		updatePasswordButtonIsDisabled.value = true
+		await elForm.validate((valid, fields) => {
+			if (valid) {
+				try{
+					axios.put(`${apiEndPoint}/api/update_password`, {
+						old_password: systemUserFormData.old_password,
+						new_password: systemUserFormData.new_password,
+						retype_password: systemUserFormData.retype_password,
+					}).then((res) => {
+						ElMessage({
+							message: res.data.message,
+							type: res.data.status == 'success' ? 'success' : 'error',
+						})
+						if(res.data.status == 'success'){
+							systemUserFormData.old_password = ''
+							systemUserFormData.new_password = ''
+							systemUserFormData.retype_password = ''
+						}
+						updatePasswordButtonIsDisabled.value = false
+					})
+				}
+				catch (err) {
+					ElMessage({
+						message: `Cannot submit form: ${err.message}`,
+						type: 'error',
+					})
+					updatePasswordButtonIsDisabled.value = false
+				}
+				finally {
+					emit('updateUserInfo')
+				}
+			}
+			else
+				updatePasswordButtonIsDisabled.value = false
+		})
 	}
 
 	const getOSFromUserAgent = (userAgent) => {
@@ -257,28 +294,17 @@
 				</el-col>
 				<el-col :span="12">
 					<el-card shadow="never">
-						<el-form label-width="auto" :label-position="labelPosition">
-							<el-form-item label="Name">
+						<el-form ref="ruleUserFormRef" :model="systemUserFormData" :rules="rules" label-width="auto" :label-position="labelPosition">
+							<el-form-item label="Name" prop="name">
 								<el-input v-model="systemUserFormData.name" />
 							</el-form-item>
-							<el-form-item label="Email">
+							<el-form-item label="Email" prop="email">
 								<el-input v-model="systemUserFormData.email"/>
 							</el-form-item>
-							<el-form-item label="Username">
+							<el-form-item label="Username" prop="username">
 								<el-input v-model="systemUserFormData.username"/>
 							</el-form-item>
-							<!-- <el-form-item label="Department">
-								<el-select v-model="systemUserFormData.department" placeholder="Select" filterable>
-						      		<el-option v-for="option in listOfDepartments" :key="option.value.id" :label="option.label" :value="option.value" />
-						      	</el-select>
-							</el-form-item>	
-							<el-form-item label="Role">
-						      	<el-select v-model="systemUserFormData.role" placeholder="Select" :loading="roleLoading" filterable>
-						      		<el-option v-for="option in systemUserRoleOption" :key="option.role" :label="option.role" :value="option.role" />
-						      	</el-select>
-						    </el-form-item> -->
-						    <!-- <el-button v-else size="large" class="submit-width" type="success" @click="sendPrForm('submit')" :disabled="sendPrButtonIsDisabled"> Send </el-button>  -->
-						    <el-button size="large" class="submit-width" type="success" @click="updateUserInfo" :disabled="updateUserButtonIsDisabled"> Save </el-button> 
+							<el-button size="large" class="submit-width" type="success" @click="updateUserInfo(ruleUserFormRef)" :disabled="updateUserButtonIsDisabled"> Save </el-button>
 						</el-form>
 					</el-card>
 				</el-col>
@@ -294,17 +320,17 @@
 				</el-col>
 				<el-col :span="12">
 					<el-card shadow="never">
-						<el-form label-width="auto" :label-position="labelPosition">
-							<el-form-item label="Old Password">
-								<el-input type="password" v-model="systemUserFormData.old_password"/>
+						<el-form ref="rulePasswordFormRef" :model="systemUserFormData" :rules="rules" :size="formSize" label-width="auto" :label-position="labelPosition">
+							<el-form-item label="Old Password" prop="old_password">
+								<el-input type="password" show-password v-model="systemUserFormData.old_password"/>
 							</el-form-item>
-							<el-form-item label="New Password">
-								<el-input type="password" v-model="systemUserFormData.new_password"/>
+							<el-form-item label="New Password" prop="new_password">
+								<el-input type="password" show-password v-model="systemUserFormData.new_password"/>
 							</el-form-item>
-							<el-form-item label="Re-type New Password">
-								<el-input type="password" v-model="systemUserFormData.retype_password"/>
+							<el-form-item label="Re-type New Password" prop="retype_password">
+								<el-input type="password" show-password v-model="systemUserFormData.retype_password"/>
 							</el-form-item>
-							<el-button size="large" class="submit-width" type="success" @click="updatePassword" :disabled="updatePasswordButtonIsDisabled"> Save </el-button> 
+							<el-button size="large" class="submit-width" type="success" @click="updatePassword(rulePasswordFormRef)" :disabled="updatePasswordButtonIsDisabled"> Save </el-button> 
 						</el-form>
 					</el-card>
 				</el-col>

@@ -1,15 +1,23 @@
 <script lang='ts' setup>
 	import { reactive, ref } from 'vue'
-	import type { FormProps } from 'element-plus'
+	import type { FormProps, FormInstance, FormRules } from 'element-plus'
 	import { ElMessage } from 'element-plus'
 	import { useAuth } from 'vue-auth3'
 	import { Picture as IconPicture } from '@element-plus/icons-vue'
-	import { apiEndPoint } from '@/constant/data'
+	import { validations } from '@/constant/data'
 	import sorCityLogo from '/images/sorsogoncity.png'
 
 	const labelPosition = ref<FormProps['labelPosition']>('top')
+	const ruleFormRef = ref<FormInstance>()
 
-	const form = reactive({
+	interface RuleForm {
+		username: string,
+		password: string
+	}
+
+	const rules = reactive<FormRules<RuleForm>>(validations)
+
+	const form = reactive<RuleForm>({
 	  username: '',
 	  password: ''
 	})
@@ -18,50 +26,53 @@
 
 	const auth = useAuth()
 
-	const signinSubmit = async () => {
-	  if (signInButtonIsDisabled.value) 
-	  	return;
-	  
-	  try {
-	  	signInButtonIsDisabled.value = true
-	  	await auth.login({
-	  		data: {
-	  			username: form.username,
-	  			password: form.password
-	  		},
-	  	})
-	  	.then((res) => {
-	  		ElMessage({
-				message: `Welcome, ${res.data.user.name}!`,
-				type: 'success',
-			})
-	  	})
-	  }
-	  catch (err) {
-	  	if (err.message == 'Network Error!')
-		  	ElMessage({
-				message: `Login failed: ${err.message}!`,
-				type: 'error',
-			})
-		else
-			ElMessage({
-				message: `Login failed: Credentials doesn't match!`,
-				type: 'error',
-			})
-	  }
-	  finally {
-	  	signInButtonIsDisabled.value = false
-	  }
+	const signinSubmit = async (elForm: FormInstance | undefined) => {
+		if (!elForm) 
+			return
+		if (signInButtonIsDisabled.value) 
+			return
+		signInButtonIsDisabled.value = true
+		await elForm.validate((valid, fields) => {
+			if (valid){
+				auth.login({
+					data: {
+						username: form.username,
+						password: form.password
+					},
+				})
+				.then((res) => {
+					ElMessage({
+						message: `Welcome, ${res.data.user.name}!`,
+						type: 'success',
+					})
+					signInButtonIsDisabled.value = false
+				})
+				.catch((err) => {
+					signInButtonIsDisabled.value = false
+					if (err.message == 'Network Error!')
+					  	ElMessage({
+							message: `Login failed: ${err.message}!`,
+							type: 'error',
+						})
+					else
+						ElMessage({
+							message: `Login failed: Credentials doesn't match!`,
+							type: 'error',
+						})
+				})
+			}
+			else 
+				signInButtonIsDisabled.value = false
+		})
 	}
 </script>
 
 <template>
 	<el-container>
 		<el-main>
-			<el-row>
-				<el-col :span="9"> </el-col>
+			<el-row style="justify-content: center;">
 				<el-col :span="7">
-					<el-form class="form" @keyup.enter="signinSubmit">
+					<el-form ref="ruleFormRef" :model="form" :rules="rules" :label-position="labelPosition" class="form" @keyup.enter="signinSubmit(ruleFormRef)">
 						<div class="logo-container">
 							<div class="block">
 								<center>
@@ -78,18 +89,22 @@
 						<el-text class="title"> HFILE Depot </el-text> 
 						<el-text class="subtitle"> Sign in with your account to use HFILE Depot Web App </el-text> 
 
-						<el-text> Username </el-text>
-			     		<el-input type="text" v-model="form.username" tabindex="1" autofocus/>
+						<el-form-item prop="username">
+							<el-text> Username </el-text>
+				     		<el-input type="text" v-model="form.username" tabindex="1" autofocus/>
+				     	</el-form-item>
 
-			     		<el-text> Password </el-text>
-			     		<el-input type="password" show-password v-model="form.password" tabindex="2" />
-			    		<el-link :underline="false" href="#" type="primary">Forgot password?</el-link>
+						<el-form-item prop="password">
+				     		<el-text> Password </el-text>
+				     		<el-input type="password" show-password v-model="form.password" prop="password" tabindex="2" />
+				     	</el-form-item>
 			    		
-			    		<el-button size="large" class="full-width" type="success" @click="signinSubmit" :disabled="signInButtonIsDisabled" tabindex="3 "> Sign In </el-button> 
+			    		<el-button size="large" class="full-width" type="success" @click="signinSubmit(ruleFormRef)" :disabled="signInButtonIsDisabled" tabindex="3 "> Sign In </el-button> 
+
 						<el-divider />
+			    		<el-link :underline="false" href="#" type="primary"> <i> Did you forget your password? </i> </el-link>
 					</el-form>
 				</el-col>
-				<el-col :span="8"> </el-col>
 			</el-row>
 		</el-main>
 		<!-- <el-footer>
@@ -136,6 +151,7 @@
 	}
 
 	.full-width {
+		margin-top: 30px;
 		display: block;
 		width: 100%;
 	}
@@ -143,8 +159,7 @@
 
 	.el-link {
 		display: flex;
-		float: right;
-		margin: -15px 0 20px 0;
+		margin: -10px 0 0px 0;
 	}
 
 	.el-link:hover{
@@ -155,9 +170,6 @@
 		vertical-align: text-bottom;
 	}
 
-	.el-input {
-		margin-bottom: 20px;
-	}
 
 	.title {
 		font-size: 30px;
@@ -177,7 +189,7 @@
 	}
 
 	.form {
-		margin: 120px 40px 0 40px ;
+		margin: 80px 40px 0 40px ;
 		padding: 30px 10px 20px 10px;
 		border: 1px solid var(--el-border-color);
 		border-radius: 6px;

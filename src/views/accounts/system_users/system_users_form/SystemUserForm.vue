@@ -1,12 +1,35 @@
-<script lang="ts" setup>
+<script lang='ts' setup>
 	import { reactive, ref, onMounted } from 'vue'
-	import type { FormProps, UploadUserFile } from 'element-plus'
+	import type { FormProps, FormInstance, FormRules } from 'element-plus'
 	import { ElMessage } from 'element-plus'
-	import { apiEndPoint, listOfDepartments } from '@/constant/data'
+	import { apiEndPoint, listOfDepartments, validations } from '@/constant/data'
 	import axios from 'axios'
 
 	const labelPosition = ref<FormProps['labelPosition']>('top')
 	const emit = defineEmits(['manageButtonIsClicked'])
+	const ruleUserFormRef = ref<FormInstance>()
+
+	interface RuleForm {
+		name: string,
+		email: string,
+		username: string,
+		password: string,
+		department: string,
+		role: string,
+		status: string,
+	}
+
+	const rules = reactive<FormRules<RuleForm>>(validations)
+
+	const systemUserFormData = reactive<RuleForm>({
+		name: '',
+		email: '',
+		username: '',
+		password: '',
+		department: '',
+		role: '',
+		status: '',
+	})
 
 	const props = defineProps({
 		update: Boolean,
@@ -17,17 +40,6 @@
 	const systemUserRoleOption = ref([])
 
 	const roleLoading = ref(true)
-
-	const systemUserFormData = reactive({
-		name: '',
-		email: '',
-		username: '',
-		password: '',
-		department: '',
-		role: '',
-		status: '',
-	})
-
 	const manageSystemUserButtonIsDisabled = ref(false)
 
 	const setAuthHeader = () => {
@@ -58,53 +70,61 @@
 		}
 	}
 
-	const manageSystemUserForm = async (formType: String) => {
+	const manageSystemUserForm = async (formType: String, elForm: FormInstance | undefined) => {
 		setAuthHeader()
-		try{
-			manageSystemUserButtonIsDisabled.value = true
-			if (formType === 'submit'){
-				await axios.post(`${apiEndPoint}/api/add_users`, { 
-					name: systemUserFormData.name,
-					email: systemUserFormData.email,
-					username: systemUserFormData.username,
-					password: systemUserFormData.password,
-					department: systemUserFormData.department,
-					role: systemUserFormData.role,
-					status: systemUserFormData.status,
-				}).then((res) => {
+		if (!elForm) 
+			return
+		manageSystemUserButtonIsDisabled.value = true
+		await elForm.validate((valid, fields) => {
+			if (valid) {
+				try{
+					if (formType === 'submit'){
+						axios.post(`${apiEndPoint}/api/add_users`, { 
+							name: systemUserFormData.name,
+							email: systemUserFormData.email,
+							username: systemUserFormData.username,
+							password: systemUserFormData.password,
+							department: systemUserFormData.department,
+							role: systemUserFormData.role,
+							status: systemUserFormData.status,
+						}).then((res) => {
+					  		ElMessage({
+								message: res.data.message,
+								type: 'success',
+							})
+							manageSystemUserButtonIsDisabled.value = false
+						})
+					}
+					else{
+						axios.put(`${apiEndPoint}/api/update_users/${props.data.id}`, {
+							name: systemUserFormData.name,
+							email: systemUserFormData.email,
+							username: systemUserFormData.username,
+							department: systemUserFormData.department,
+							role: systemUserFormData.role,
+							status: systemUserFormData.status,
+						}).then((res) => {
+							ElMessage({
+								message: res.data.message,
+								type: 'success',
+							})
+							manageSystemUserButtonIsDisabled.value = false
+						})
+					}
 					emit('manageButtonIsClicked')
-			  		ElMessage({
-						message: res.data.message,
-						type: 'success',
-					})
-				})
-			}
-			else{
-				await axios.put(`${apiEndPoint}/api/update_users/${props.data.id}`, {
-					name: systemUserFormData.name,
-					email: systemUserFormData.email,
-					username: systemUserFormData.username,
-					department: systemUserFormData.department,
-					role: systemUserFormData.role,
-					status: systemUserFormData.status,
-				}).then((res) => {
-					emit('manageButtonIsClicked')
+				}
+				catch (err) {
 					ElMessage({
-						message: res.data.message,
-						type: 'success',
+						message: `Cannot submit form: ${err.message}`,
+						type: 'error',
 					})
-				})
+					manageSystemUserButtonIsDisabled.value = false
+				}
 			}
-		}
-		catch (err) {
-			ElMessage({
-				message: `Cannot submit form: ${err.message}`,
-				type: 'error',
-			})
-		}
-		finally {
-			manageSystemUserButtonIsDisabled.value = false
-		}
+			else
+				manageSystemUserButtonIsDisabled.value = false
+
+		})
 	}
 
 	onMounted(() => {
@@ -121,37 +141,37 @@
 </script>
 
 <template>
- 	<el-form :model="systemUserFormData" label-width="auto" :label-position="labelPosition">
- 		<el-form-item label="Name">
+ 	<el-form ref="ruleUserFormRef" :model="systemUserFormData" :rules="rules" label-width="auto" :label-position="labelPosition">
+ 		<el-form-item label="Name" prop="name">
 	      	<el-input v-model="systemUserFormData.name" />
  		</el-form-item>
- 		<el-form-item label="Email">
+ 		<el-form-item label="Email" prop="email">
 	      	<el-input v-model="systemUserFormData.email" />
  		</el-form-item>
- 		<el-form-item label="Username">
+ 		<el-form-item label="Username" prop="username">
 	      	<el-input v-model="systemUserFormData.username" />
  		</el-form-item>
- 		<el-form-item label="Password" v-if="!props.update">
+ 		<el-form-item label="Password" prop="password" v-if="!props.update">
 	      	<el-input v-model="systemUserFormData.password" type="password" show-password />
  		</el-form-item>
-	    <el-form-item label="Department">
+	    <el-form-item label="Department" prop="department">
 	      	<el-select v-model="systemUserFormData.department" placeholder="Select" filterable>
 	      		<el-option v-for="option in listOfDepartments" :key="option.value.id" :label="option.label" :value="option.value" />
 	      	</el-select>
 	    </el-form-item>
-	    <el-form-item label="Role">
+	    <el-form-item label="Role" prop="role">
 	      	<el-select v-model="systemUserFormData.role" placeholder="Select" :loading="roleLoading" filterable>
 	      		<el-option v-for="option in systemUserRoleOption" :key="option.role" :label="option.role" :value="option.role" />
 	      	</el-select>
 	    </el-form-item>
-	    <el-form-item label="Account Status">
+	    <el-form-item label="Account Status" prop="status">
 	      	<el-radio-group v-model="systemUserFormData.status" fill="#67c23a">
 				<el-radio-button label="Active" value="Active" />
 				<el-radio-button label="Inactive" value="Inactive" />
 			</el-radio-group>
 	    </el-form-item>
-	    <el-button v-if="props.update" size="large" class="submit-width" type="warning" @click="manageSystemUserForm('update')" :disabled="manageSystemUserButtonIsDisabled"> Update </el-button> 
-	    <el-button v-else size="large" class="submit-width" type="success" @click="manageSystemUserForm('submit')" :disabled="manageSystemUserButtonIsDisabled"> Add </el-button> 
+	    <el-button v-if="props.update" size="large" class="submit-width" type="warning" @click="manageSystemUserForm('update', ruleUserFormRef)" :disabled="manageSystemUserButtonIsDisabled"> Update </el-button> 
+	    <el-button v-else size="large" class="submit-width" type="success" @click="manageSystemUserForm('submit', ruleUserFormRef)" :disabled="manageSystemUserButtonIsDisabled"> Add </el-button> 
   	</el-form>
 </template>
 

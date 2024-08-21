@@ -148,7 +148,7 @@
 						</div>
 					</template>
 					<template #default>
-						<el-menu-item index="/dashboard" v-if="checkPermission('purchaseOrdersHasView') || checkPermission('totalSpendOnProcurementHasView')">
+						<el-menu-item index="/dashboard">
 							<el-icon> <eleme /> </el-icon>
 							Dashboard
 						</el-menu-item>

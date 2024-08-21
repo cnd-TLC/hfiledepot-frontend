@@ -224,3 +224,73 @@ export const frequentlyAskedQuestions = [
         "answer": "For assistance with the purchase request or PPMP process, please contact your office’s designated procurement officer or the BAC directly."
     }
 ]
+
+
+export const validations = {
+		username: [
+			{ required: true, message: 'Username field is required', trigger: 'blur' },
+		],
+		password: [
+			{ required: true, message: 'Password field is required', trigger: 'blur' },
+			{ min: 5, message: 'Length should be at least 5 characters', trigger: 'blur' },
+		],
+		role: [
+			{ required: true, message: 'Role field is required', trigger: 'blur' },
+		],
+		description: [
+			{ required: true, message: 'Description field is required', trigger: 'blur' },
+		],
+		name: [
+			{ required: true, message: 'Name field is required', trigger: 'blur' },
+		],
+		email: [
+			{ required: true, message: 'Email field is required', trigger: 'blur' },
+			{ type: 'email', message: 'Please enter a valid email address', trigger: 'blur' }
+		],
+		department: [
+			{ required: true, message: 'Department field is required', trigger: 'blur' },
+		],
+		status: [
+			{ required: true, message: 'Status is required', trigger: 'blur' },
+		],
+		old_password: [
+			{ required: true, message: 'Old Password field is required', trigger: 'blur' },
+		],
+		new_password: [
+			{ required: true, message: 'New Password field is required', trigger: 'blur' },
+			{ min: 5, message: 'Length should be at least 5 characters', trigger: 'blur' },
+		],
+		retype_password: [
+			{ required: true, message: 'Password must be retyped', trigger: 'blur' },
+		],
+		title: [
+			{ required: true, message: 'Title field is required', trigger: 'blur' },
+		],
+		pmo_end_user_dept: [
+			{ required: true, message: 'PMO / End User Department field is required', trigger: 'blur' },
+		],
+		source_of_funds: [
+			{ required: true, message: 'Source of Funds field is required', trigger: 'blur' },
+		],
+		category: [
+			{ required: true, message: 'Category field is required', trigger: 'blur' },
+		],
+		general_desc: [
+			{ required: true, message: 'General Description field is required', trigger: 'blur' },
+		],
+		mode_of_procurement: [
+			{ required: true, message: 'Mode of Procurement field is required', trigger: 'blur' },
+		],
+		estimated_budget: [
+			{ required: true, message: 'Estimated Budget field is required', trigger: 'blur' },
+		],
+		purpose: [
+			{ required: true, message: 'Purpose field is required', trigger: 'blur' },
+		],
+		item_description: [
+			{ required: true, message: 'Item field is required', trigger: 'blur' },
+		],
+		unit_cost: [
+			{ required: true, message: 'Unit Cost field is required', trigger: 'blur' },
+		]
+	}
