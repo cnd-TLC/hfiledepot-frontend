@@ -114,7 +114,7 @@
 		element-loading-text="Loading..." 
 		ref="fullscreenArea"	
 	>
-		<el-aside width="250px">
+		<el-aside>
 			<div class="image-container">
 				<div class="block">
 					<center class="center-image">
@@ -185,6 +185,11 @@
 						</el-menu-item-group>
 					</template>
 				</el-skeleton>
+				<div class="copyright-content">
+					<el-text class="copyright">
+						COPYRIGHT © 2024 HFILE Depot, All rights Reserved
+					</el-text>
+				</div>
 			</el-menu>
 		</el-aside>
 		<el-container>
@@ -241,16 +246,26 @@
 			<el-main>
 				<router-view @updateUserInfo="getUserData" />
 			</el-main>
-			<el-footer> 
+			<!-- <el-footer> 
 				COPYRIGHT © 2024 HFILE Depot, All rights Reserved
-			</el-footer>
+			</el-footer> -->
 		</el-container>
 	</el-container>
 </template>
 
-<style>
+<style scoped>
 	.loading-screen {
 		height: 100vh;
+	}
+
+	.copyright-content {
+		bottom: 0px;
+		width: 100%;
+		text-align: center;
+	}
+
+	.copyright {
+		font-size: 8px;
 	}
 
 	.image-container {
@@ -308,18 +323,37 @@
 	}
 
 	.el-header {
+		position: fixed;
+		right: 0px;
+		top: 0px;
+		left: 250px;
+		z-index: 1000;
+		background-color: var(--el-bg-color-overlay);
 		padding: 0;
 	}
 
+	.el-main {
+		margin-top: 60px;
+		margin-left: 250px;
+	}
+
 	.el-footer {
+		color: var(--el-menu-text-color);
+		background-color: var(--el-bg-color-overlay);
+/*		border-top: solid 1px var(--el-border-color);*/
 		font-style: italic;
 		font-size: 10px;
 		text-align: center;
+		margin-left: 250px;
 		padding: 25px 0 0 0;
 	}
 
 	.el-aside {
+		position: fixed;
+		left: 0px;
+		width: 250px;
 		border-right: solid 1px var(--el-border-color);
+		background-color: var(--el-bg-color-overlay);
 	}
 
 	.main-menu {
@@ -350,11 +384,6 @@
 
 	.mode-switch {
 		margin-right: 10px;
-	}
-
-	.el-loading-spinner .path, .el-loading-spinner .el-loading-text {
-		stroke: #529b2e;
-		color: #529b2e;
 	}
 
 	.menu-skeleton {

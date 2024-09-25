@@ -195,7 +195,7 @@
 						<el-table-column prop="pmo_end_user_dept" label="Office" sortable />
 						<el-table-column label="Unit" width="150">
 							<template #default="data">
-								<el-text> {{ data.row.unit }}<span v-if="data.row.unit != null">/s</span> </el-text>
+								<el-text> {{ data.row.unit }}<span v-if="data.row.unit != null">(s)</span> </el-text>
 							</template>
 						</el-table-column>
 					</el-table>

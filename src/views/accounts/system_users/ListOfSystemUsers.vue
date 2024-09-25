@@ -186,8 +186,6 @@
 						</el-table-column>
 						<el-table-column prop="action" v-if="checkPermission('systemUsersHasUpdate') || checkPermission('systemUsersHasRemove')" label="Action" width="120">
 							<template #default="data">
-								
-
 								<el-dropdown trigger="click">
 									<el-button type="info">
 										Action &nbsp; <el-icon><arrow-down /></el-icon>

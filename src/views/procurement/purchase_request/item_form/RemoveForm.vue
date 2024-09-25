@@ -21,13 +21,13 @@
 			}  
 		}
 		try{
+			removeItemButtonIsDisabled.value = true
 			await axios.delete(`${apiEndPoint}/api/remove_pr_items/${props.data.id}`).then((res) => {
 					ElMessage({
 						message: res.data.message,
 						type: 'success',
 					})
 				})
-			removeItemButtonIsDisabled.value = true
 			emit('removeButtonIsClicked')
 		}
 		catch (err) {

@@ -2,8 +2,6 @@
 	import { ref } from 'vue';
 	import VueApexCharts from 'vue3-apexcharts';
 
-	
-
 	const props = defineProps({
 			data: Array
 		})
@@ -12,8 +10,7 @@
 		{
 			name: '',
 			data: props.data,
-			// color: '#529b2e'
-			color: '#777'
+			color: '#529b2e'
 		}
 	]);
 
@@ -88,7 +85,10 @@
 		    }
 		},
 		dataLabels: {
-			enabled: true
+			enabled: true,
+			style: {
+				colors: ['#ccc']
+			}
 		},
 		markers: {
 			size: 6
@@ -96,12 +96,16 @@
 		xaxis: {
 			categories: categories,
 			// tickPlacement: 'between'
+			labels: {
+				style: {
+					colors: 'var(--el-menu-text-color)',
+					fontSize: '10',
+				}
+			}
 		},
 		yaxis: {
 			labels: {
-				formatter: function (value) {
-					return Math.floor(value)
-				}
+				show: false
 			}
 		},
 		grid: {  
@@ -128,8 +132,14 @@
 				const category = categoriesNames[dataPointIndex]
 				const value = series[seriesIndex][dataPointIndex]
 				return `
-					<div class="hoverArea">
-						${category} : ${value} request/s
+					<div class="totalRequestsHoverArea">
+						<div class="totalRequestsTooltipTitle">
+							${category}
+						</div>
+						<hr class="totalRequestsLine"/>
+						<div class="totalRequestsTooltipBody">
+						 <div class="circle"> </div> ${value} purchase request/s sent
+						</div>
 					</div>
 				`;
 			}
@@ -145,16 +155,38 @@
 	<vue-apex-charts class="apex-chart" :options="requestTrackerOptions" :series="series"></vue-apex-charts>
 </template>
 
-<style >
-	.hoverArea {
+<style>
+	.totalRequestsHoverArea {
+		display: flex;
+		flex-direction: column;
+		text-align: left;
         width: auto;
-        height: 20px;
-        background-color: #606266;
+        height: auto;
+        color: var(--el-menu-text-color) !important;
+        padding: 0 !important;
+    }
+    .totalRequestsTooltipTitle, .totalRequestsTooltipBody, .totalRequestsLine {
+    	display: block;
+    	width: 100%;
+    }
+
+    .totalRequestsTooltipTitle {
+    	background-color: var(--el-bg-color-overlay);
+    	padding: 5px 20px;
+    }
+
+    .totalRequestsTooltipBody {
+        background-color: var(--el-bg-color-overlay);
+        padding: 5px 20px;
         display: flex;
         align-items: center;
-        justify-content: center;
-        color: white;
-        text-align: center;
-        padding: 0 20px;
+    }
+
+    .circle {
+    	height: 10px;
+    	width: 10px;
+    	background-color: #529b2e;
+    	margin-right: 10px;
+    	border-radius: 100px;
     }
 </style>

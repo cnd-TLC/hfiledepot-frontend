@@ -4,9 +4,10 @@
 	import { ComponentSize } from 'element-plus'
 	import { apiEndPoint } from '@/constant/data'
 	import { useDark } from '@vueuse/core'
-	import { Search, ArrowDown, View, Files, Check, Close } from '@element-plus/icons-vue'
+	import { Search, ArrowDown, View, Files, Check, Close, Clock } from '@element-plus/icons-vue'
 	import axios from 'axios'
 	import ApprovalForm from '@/views/procurement/ppmp/approval_form/ApprovalForm.vue'
+	import PendingForm from '@/views/procurement/ppmp/approval_form/PendingForm.vue'
 	import RejectForm from '@/views/procurement/ppmp/approval_form/RejectForm.vue'
 	import PreviewForm from '@/views/procurement/ppmp/ppmp_form/PreviewForm.vue'
 	import AttachmentForm from '@/components/dropzone/Dropzone.vue'
@@ -17,6 +18,7 @@
 	const listPpmpRequestTableData = ref([])
 	const clickedRow = ref([])
 	const showApprovalForm = ref(false)
+	const showPendingForm = ref(false)
 	const showPreviewForm = ref(false)
 	const showAttachmentsForm = ref(false)
 	const showRejectForm = ref(false)
@@ -40,6 +42,8 @@
 		clickedRow.value = data
 		if (formName === 'ApprovalForm')
 			showApprovalForm.value = true
+		if (formName === 'PendingForm')
+			showPendingForm.value = true
 		if (formName === 'PreviewForm')
 			showPreviewForm.value = true
 		if (formName === 'AttachmentsForm')
@@ -66,6 +70,7 @@
 
 			showPreviewForm.value = false
 			showApprovalForm.value = false
+			showPendingForm.value = false
 			showRejectForm.value = false
 		}
 		catch (err) {
@@ -134,7 +139,10 @@
 	<el-dialog destroy-on-close :overflow="false" v-model="showAttachmentsForm" title="PPMP Attachments" width="600">
 		<attachment-form :type="'ppmp'" :data="clickedRow" @attachmentUpdated="loadPpmpData(), searchValue = ''" />
 	</el-dialog>
-	<el-dialog destroy-on-close :overflow="false" v-model="showRejectForm"  title="Reject PPMP" width="400">
+	<el-dialog destroy-on-close :overflow="false" v-model="showPendingForm"  title="Pending PPMP Form" width="400">
+		<pending-form :data="clickedRow" @manageStatusButtonIsClicked="loadPpmpData(), searchValue = ''" />
+	</el-dialog>
+	<el-dialog destroy-on-close :overflow="false" v-model="showRejectForm"  title="Reject PPMP Form" width="400">
 		<reject-form :data="clickedRow" @manageStatusButtonIsClicked="loadPpmpData(), searchValue = ''" />
 	</el-dialog>
 
@@ -172,7 +180,8 @@
 						<el-table-column label="Project" sortable>
 							<template #default="data">
 								<el-text class="remarks" size="small" v-if="data.row.status == 'Rejected' && data.row.remarks" type="danger"> {{ data.row.remarks }} </el-text>
-								<br v-if="data.row.status == 'Rejected' && data.row.remarks"/>
+								<el-text class="remarks" size="small" v-if="data.row.status == 'Pending' && data.row.remarks" type="warning"> {{ data.row.remarks }} </el-text>
+								<br v-if="(data.row.status == 'Rejected' || data.row.status == 'Pending') && data.row.remarks"/>
 								<el-text class="project-title"> {{ data.row.title }} </el-text>
 								<br />
 								<el-tag size="small" :effect="tagEffect" type="success"> {{ data.row.year }} </el-tag>
@@ -199,6 +208,7 @@
 										<el-dropdown-item class="action-button" @click="showForm('PreviewForm', data.row)"> <el-icon><View /></el-icon> Preview Items </el-dropdown-item>
 										<el-dropdown-item class="action-button" v-if="checkPermission('managePpmpHasManageAttachments') && data.row.status == 'Pending'" @click="showForm('AttachmentsForm', data.row)"> <el-icon><Files /></el-icon> Attachments </el-dropdown-item>
 										<el-dropdown-item class="action-button" v-if="checkPermission('ppmpApprovalHasApprove')" @click="showForm('ApprovalForm', data.row)"> <el-icon><Check /></el-icon> Approve </el-dropdown-item>
+										<el-dropdown-item class="action-button" v-if="checkPermission('ppmpApprovalHasPending')" @click="showForm('PendingForm', data.row)"> <el-icon><Clock /></el-icon> Pending </el-dropdown-item>
 										<el-dropdown-item class="action-button" v-if="checkPermission('ppmpApprovalHasReject')" @click="showForm('RemoveForm', data.row)"> <el-text type="danger"> <el-icon><Close /></el-icon> Reject </el-text> </el-dropdown-item> 
 									</el-dropdown-menu>
 									</template>

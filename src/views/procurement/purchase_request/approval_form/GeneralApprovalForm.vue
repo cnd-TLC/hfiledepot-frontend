@@ -21,6 +21,7 @@
 			}  
 		}
 		try{
+			approveItemButtonIsDisabled.value = true
 			await axios.put(`${apiEndPoint}/api/set_approval_pr/${props.data.id}`, {
 					status: 'Approved'
 				}).then((res) => {
@@ -30,7 +31,6 @@
 					})
 				})
 
-			approveItemButtonIsDisabled.value = true
 			emit('approveButtonIsClicked')
 		}
 		catch (err) {

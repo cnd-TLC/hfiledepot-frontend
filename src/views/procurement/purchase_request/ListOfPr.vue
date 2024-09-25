@@ -211,7 +211,8 @@
 							<template #default="data">
 								<div>
 									<el-text class="remarks" size="small" v-if="data.row.status == 'Rejected' && data.row.remarks" type="danger"> {{ data.row.remarks }} </el-text>
-									<br v-if="data.row.status == 'Rejected' && data.row.remarks"/>
+									<el-text class="remarks" size="small" v-if="data.row.status == 'Pending' && data.row.remarks" type="warning"> {{ data.row.remarks }} </el-text>
+									<br v-if="(data.row.status == 'Rejected' || data.row.status == 'Pending') && data.row.remarks"/>
 									<el-text size="large" class="pr-no"> {{ data.row.pr_no }} </el-text>
 									<br v-if="data.row.pr_no"/>
 									<el-tag size="small" :effect="tagEffect" type="success"> {{ new Date(data.row.created_at).toDateString() }} </el-tag>

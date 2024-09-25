@@ -93,6 +93,12 @@
 								type: 'success',
 							})
 							manageSystemUserButtonIsDisabled.value = false
+							emit('manageButtonIsClicked')
+						}).catch((err) => {
+							ElMessage({
+								message: `A user with this username or email already exists!`,
+								type: 'error',
+							})
 						})
 					}
 					else{
@@ -109,9 +115,14 @@
 								type: 'success',
 							})
 							manageSystemUserButtonIsDisabled.value = false
+							emit('manageButtonIsClicked')
+						}).catch((err) => {
+							ElMessage({
+								message: `A user with this username or email already exists!`,
+								type: 'error',
+							})
 						})
 					}
-					emit('manageButtonIsClicked')
 				}
 				catch (err) {
 					ElMessage({

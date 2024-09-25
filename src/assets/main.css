@@ -43,6 +43,20 @@ a,
   font-weight: normal !important;
 }
 
+.el-loading-spinner .path, .el-loading-spinner .el-loading-text {
+  stroke: #529b2e !important;
+  color: #529b2e !important;
+}
+
+.el-year-table td.current:not(.disabled) .el-date-table-cell__text {
+  background-color: var(--el-color-success) !important;
+  color: #fff !important;
+}
+
+.el-year-table td.today .el-date-table-cell__text, .el-year-table td .el-date-table-cell__text:hover{
+  color: var(--el-color-success) !important;
+}
+
 @media (hover: hover) {
   a:hover {
     background-color: hsla(160, 100%, 37%, 0.2);

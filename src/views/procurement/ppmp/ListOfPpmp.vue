@@ -208,6 +208,7 @@
 						<el-table-column label="Project" sortable>
 							<template #default="data">
 								<el-text class="remarks" size="small" v-if="data.row.status == 'Rejected' && data.row.remarks" type="danger"> {{ data.row.remarks }} </el-text>
+								<el-text class="remarks" size="small" v-if="data.row.status == 'Pending' && data.row.remarks" type="warning"> {{ data.row.remarks }} </el-text>
 								<br v-if="data.row.status == 'Rejected' && data.row.remarks"/>
 								<el-text class="project-title"> {{ data.row.title }} </el-text>
 								<br />

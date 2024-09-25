@@ -66,10 +66,11 @@
 				],
 				purchase_request_approval: [
 					'purchaseRequestApprovalHasView',
-					'purchaseRequestApprovalHasGeneralApprove',
 					'purchaseRequestApprovalHasUpdateDetails',
+					'purchaseRequestApprovalHasManageAttachments',
+					'purchaseRequestApprovalHasPending',
+					'purchaseRequestApprovalHasGeneralApprove',
 					'purchaseRequestApprovalHasReject',
-					'purchaseRequestApprovalHasManageAttachments'
 				],
 				manage_ppmp: [
 					'managePpmpHasView',
@@ -81,9 +82,10 @@
 				],
 				ppmp_approval: [
 					'ppmpApprovalHasView',
+					'ppmpApprovalHasManageAttachments',
+					'ppmpApprovalHasPending',
 					'ppmpApprovalHasApprove',
 					'ppmpApprovalHasReject',
-					'ppmpApprovalHasManageAttachments'
 				],
 				ppmp_items_master_list: [
 					'ppmpItemsMasterListHasView',
@@ -286,12 +288,15 @@
 			    				<br />
 								<el-checkbox style="margin-top: 10px" :value="modules.procurement.purchase_request_approval[0]"> View </el-checkbox>
 								<br />
-								<el-checkbox :value="modules.procurement.purchase_request_approval[1]"> Approve </el-checkbox>
+								<el-checkbox :value="modules.procurement.purchase_request_approval[1]"> Update Details </el-checkbox>
 								<br />
-								<el-checkbox :value="modules.procurement.purchase_request_approval[2]"> Update Details </el-checkbox>
+								<el-checkbox :value="modules.procurement.purchase_request_approval[2]"> Manage Attachments </el-checkbox>
 								<br />
-								<el-checkbox :value="modules.procurement.purchase_request_approval[3]"> Reject </el-checkbox>
-								<el-checkbox :value="modules.procurement.purchase_request_approval[4]"> Manage Attachments </el-checkbox>
+								<el-checkbox :value="modules.procurement.purchase_request_approval[3]"> Set Pending </el-checkbox>
+								<br />
+								<el-checkbox :value="modules.procurement.purchase_request_approval[4]"> Set Approve </el-checkbox>
+								<br />
+								<el-checkbox :value="modules.procurement.purchase_request_approval[5]"> Set Reject </el-checkbox>
 							</el-checkbox-group>
 	    				</el-card>
 	    			</el-col>
@@ -340,10 +345,13 @@
 			    				<br />
 								<el-checkbox style="margin-top: 10px" :value="modules.procurement.ppmp_approval[0]"> View </el-checkbox>
 								<br />
-								<el-checkbox :value="modules.procurement.ppmp_approval[1]"> Approve </el-checkbox>
+								<el-checkbox :value="modules.procurement.ppmp_approval[1]"> Manage Attachments </el-checkbox>
 								<br />
-								<el-checkbox :value="modules.procurement.ppmp_approval[2]"> Reject </el-checkbox>
-								<el-checkbox :value="modules.procurement.ppmp_approval[3]"> Manage Attachments </el-checkbox>
+								<el-checkbox :value="modules.procurement.ppmp_approval[2]"> Set Pending </el-checkbox>
+								<br />
+								<el-checkbox :value="modules.procurement.ppmp_approval[3]"> Set Approve </el-checkbox>
+								<br />
+								<el-checkbox :value="modules.procurement.ppmp_approval[4]"> Set Reject </el-checkbox>
 							</el-checkbox-group>
 	    				</el-card>
 	    			</el-col>

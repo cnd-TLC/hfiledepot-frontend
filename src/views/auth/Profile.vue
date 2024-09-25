@@ -320,7 +320,7 @@
 				</el-col>
 				<el-col :span="12">
 					<el-card shadow="never">
-						<el-form ref="rulePasswordFormRef" :model="systemUserFormData" :rules="rules" :size="formSize" label-width="auto" :label-position="labelPosition">
+						<el-form ref="rulePasswordFormRef" :model="systemUserFormData" :rules="rules" label-width="auto" :label-position="labelPosition">
 							<el-form-item label="Old Password" prop="old_password">
 								<el-input type="password" show-password v-model="systemUserFormData.old_password"/>
 							</el-form-item>
@@ -408,5 +408,9 @@
 
 	.el-form {
 		padding-bottom: 40px;
+	}
+
+	.el-loading-mask {
+		z-index: 999;
 	}
 </style>

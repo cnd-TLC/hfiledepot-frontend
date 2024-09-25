@@ -7,19 +7,19 @@
 
 	const labelPosition = ref<FormProps['labelPosition']>('top')
 
-	const emit = defineEmits(['manageButtonIsClicked'])
+	const emit = defineEmits(['manageStatusButtonIsClicked'])
 
 	const props = defineProps({
 		data: Object
 	})
 
-	const rejectItemButtonIsDisabled = ref(false)
+	const pendingItemButtonIsDisabled = ref(false)
 
-	const prFormData = reactive({
+	const ppmpFormData = reactive({
 		reason: '',
 	})
 
-	const rejectItemForm = async (formType: String) => {
+	const pendingItemForm = async (formType: String) => {
 		const token = JSON.parse(localStorage.auth_token_default);
 		if(token){
 			axios.defaults.headers = {
@@ -28,10 +28,10 @@
 			}  
 		}
 		try{
-			rejectItemButtonIsDisabled.value = true
-			await axios.put(`${apiEndPoint}/api/set_approval_pr/${props.data.id}`, {
-					status: 'Rejected',
-					reason: prFormData.reason
+			pendingItemButtonIsDisabled.value = true
+			await axios.put(`${apiEndPoint}/api/set_approval_ppmp/${props.data.id}`, {
+					status: 'Pending',
+					reason: ppmpFormData.reason
 				}).then((res) => {
 					ElMessage({
 						message: res.data.message,
@@ -39,35 +39,35 @@
 					})
 				})
 
-			emit('manageButtonIsClicked')
+			emit('manageStatusButtonIsClicked')
 		}
 		catch (err) {
 			ElMessage({
-				message: `Cannot reject: ${err.message}`,
+				message: `Cannot pending: ${err.message}`,
 				type: 'error',
 			})
 		}
 		finally {
-			rejectItemButtonIsDisabled.value = false
+			pendingItemButtonIsDisabled.value = false
 		}
 	}
 </script>
 
 <template>
-	<el-text> Are you sure you want to reject this request? </el-text>
+	<el-text> Are you sure you want to set this request to pending? </el-text>
 	<el-form :label-position="labelPosition">
 		<el-form-item>
 			<template #label>
 				<el-text> Reason <i> (optional) </i></el-text>
 			</template>
-	      	<el-input v-model="prFormData.reason" :autosize="{minRows: 5}" type="textarea" />
+	      	<el-input v-model="ppmpFormData.reason" :autosize="{minRows: 5}" type="textarea" />
 	    </el-form-item>
-	    <el-button size="large" class="reject-width" type="danger" @click="rejectItemForm" :disabled="rejectItemButtonIsDisabled"> Yes </el-button> 
+	    <el-button size="large" class="pending-width" type="success" @click="pendingItemForm" :disabled="pendingItemButtonIsDisabled"> Yes </el-button> 
 	</el-form>
 </template>
 
 <style scoped>
-	.reject-width {
+	.pending-width {
 		display: block;
 		float: right;
 		width: 30%;

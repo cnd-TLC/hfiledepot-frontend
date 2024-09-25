@@ -4,12 +4,13 @@
 	import { ComponentSize } from 'element-plus'
 	import { apiEndPoint } from '@/constant/data'
 	import { useDark } from '@vueuse/core'
-	import { Search, ArrowDown, View, Files, Check, Refresh, Close } from '@element-plus/icons-vue'
+	import { Search, ArrowDown, View, Files, Check, Clock, Refresh, Close } from '@element-plus/icons-vue'
 	import axios from 'axios'
 	import GeneralApprovalForm from '@/views/procurement/purchase_request/approval_form/GeneralApprovalForm.vue'
 	import DetailsForm from '@/views/procurement/purchase_request/approval_form/DetailsForm.vue'
 	import PreviewForm from '@/views/procurement/purchase_request/pr_form/PreviewForm.vue'
 	import AttachmentForm from '@/components/dropzone/Dropzone.vue'
+	import PendingForm from '@/views/procurement/purchase_request/approval_form/PendingForm.vue'
 	import RejectForm from '@/views/procurement/purchase_request/approval_form/RejectForm.vue'
 
 	const auth = useAuth()
@@ -21,6 +22,7 @@
 	const showPreviewForm = ref(false)
 	const showAttachmentsForm = ref(false)
 	const showRejectForm = ref(false)
+	const showPendingForm = ref(false)
 	const showGeneralApprovalForm = ref(false)
 	const totalRecords = ref(1)
 	const pageSize = ref(5)
@@ -68,6 +70,8 @@
 			showGeneralApprovalForm.value = true
 		if (formName === 'DetailsForm')
 			showDetailsForm.value = true
+		if (formName === 'PendingForm')
+			showPendingForm.value = true
 		if (formName === 'PreviewForm')
 			showPreviewForm.value = true
 		if (formName === 'AttachmentsForm')
@@ -95,6 +99,7 @@
 			showGeneralApprovalForm.value = false
 			showDetailsForm.value = false
 			showPreviewForm.value = false
+			showPendingForm.value = false
 			// showAttachmentsForm.value = false
 			showRejectForm.value = false
 		}
@@ -171,8 +176,11 @@
 	<el-dialog destroy-on-close :overflow="false" v-model="showGeneralApprovalForm" title="Approve PR" width="400">
 		<general-approval-form :data="clickedRow" @approveButtonIsClicked="loadPrData(), searchValue = ''" />
 	</el-dialog>
-	<el-dialog destroy-on-close :overflow="false" v-model="showRejectForm" title="Reject PR" width="400">
-		<reject-form :data="clickedRow" @rejectButtonIsClicked="loadPrData(), searchValue = ''" />
+	<el-dialog destroy-on-close :overflow="false" v-model="showPendingForm" title="Pending PR Form" width="400">
+		<pending-form :data="clickedRow" @manageButtonIsClicked="loadPrData(), searchValue = ''" />
+	</el-dialog>
+	<el-dialog destroy-on-close :overflow="false" v-model="showRejectForm" title="Reject PR Form" width="400">
+		<reject-form :data="clickedRow" @manageButtonIsClicked="loadPrData(), searchValue = ''" />
 	</el-dialog>
 
 	<el-text class="title"> Purchase Requests </el-text>
@@ -216,7 +224,8 @@
 						<template #default="data">
 							<div>
 								<el-text class="remarks" size="small" v-if="data.row.status == 'Rejected' && data.row.remarks" type="danger"> {{ data.row.remarks }} </el-text>
-								<br v-if="data.row.status == 'Rejected' && data.row.remarks"/>
+								<el-text class="remarks" size="small" v-if="data.row.status == 'Pending' && data.row.remarks" type="warning"> {{ data.row.remarks }} </el-text>
+								<br v-if="(data.row.status == 'Rejected' || data.row.status == 'Pending') && data.row.remarks"/>
 								<el-text size="large" class="pr-no" v-if="data.row.pr_no"> {{ data.row.pr_no }} </el-text>
 								<br v-if="data.row.pr_no"/>
 								<el-tag size="small" :effect="tagEffect" type="success"> {{ new Date(data.row.created_at).toDateString() }} </el-tag>
@@ -264,6 +273,7 @@
 										<el-dropdown-item v-if="checkPermission('purchaseRequestApprovalHasManageAttachments') && data.row.approved_by_cao_name == null && checkStatus(user.department, data.row)" @click="showForm('AttachmentsForm', data.row)"> <el-icon><Files /></el-icon> Attachments </el-dropdown-item>
 										<el-dropdown-item v-if="checkPermission('purchaseRequestApprovalHasUpdateDetails') && data.row.approved_by_cao_name == null && checkStatus(user.department, data.row)" @click="showForm('DetailsForm', data.row)"> <el-icon><Refresh /></el-icon> Update Details </el-dropdown-item>
 										<el-dropdown-item v-if="checkPermission('purchaseRequestApprovalHasGeneralApprove') && data.row.approved_by_cao_name == null && checkStatus(user.department, data.row)" @click="showForm('GeneralApprovalForm', data.row)"> <el-icon><Check /></el-icon> Approve </el-dropdown-item>
+										<el-dropdown-item v-if="checkPermission('purchaseRequestApprovalHasPending') && data.row.approved_by_cao_name == null && checkStatus(user.department, data.row)" @click="showForm('PendingForm', data.row)"> <el-icon><Clock /></el-icon> Pending </el-dropdown-item>
 										<el-dropdown-item v-if="checkPermission('purchaseRequestApprovalHasReject') && data.row.approved_by_cao_name == null && checkStatus(user.department, data.row)" @click="showForm('RejectForm', data.row)"> <el-text type="danger"> <el-icon><Close /></el-icon> Reject </el-text> </el-dropdown-item>
 									</el-dropdown-menu>
 								</template>

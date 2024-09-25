@@ -142,7 +142,7 @@
 							</el-table-column>
 							<el-table-column prop="quantity" label="Quantity" width="120">
 								<template #default="data">
-									<el-text v-if="!data.row.lumpsum"> {{ data.row.quantity }} {{ data.row.unit }}<span v-if="data.row.unit != null">/s</span> </el-text>
+									<el-text v-if="!data.row.lumpsum"> {{ data.row.quantity }} {{ data.row.unit }}<span v-if="data.row.unit != null">(s)</span> </el-text>
 									<el-text class="lumpsum" v-else>
 										Lumpsum
 									</el-text>

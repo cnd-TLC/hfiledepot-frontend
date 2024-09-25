@@ -28,6 +28,7 @@
 			}  
 		}
 		try{
+			rejectItemButtonIsDisabled.value = true
 			await axios.put(`${apiEndPoint}/api/set_approval_ppmp/${props.data.id}`, {
 					status: 'Rejected',
 					reason: ppmpFormData.reason
@@ -38,7 +39,6 @@
 					})
 				})
 
-			rejectItemButtonIsDisabled.value = true
 			emit('manageStatusButtonIsClicked')
 		}
 		catch (err) {

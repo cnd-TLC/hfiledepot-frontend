@@ -24,6 +24,22 @@
 		data: Object
 	})
 
+	const getLastApproved = () => {
+		if(props.data.approved_by_cbo_name)
+			return Math.floor((new Date() - new Date(props.data.approved_by_cbo)) / (1000 * 60 * 60 * 24))
+		if(props.data.approved_by_cto_name)
+			return Math.floor((new Date() - new Date(props.data.approved_by_cto)) / (1000 * 60 * 60 * 24))
+		if(props.data.approved_by_cmo)
+			return Math.floor((new Date() - new Date(props.data.approved_by_cmo)) / (1000 * 60 * 60 * 24))
+		if(props.data.approved_by_bac_name)
+			return Math.floor((new Date() - new Date(props.data.approved_by_bac)) / (1000 * 60 * 60 * 24))
+		if(props.data.approved_by_cgso_name)
+			return Math.floor((new Date() - new Date(props.data.approved_by_cgso)) / (1000 * 60 * 60 * 24))
+		
+		return 0
+	}
+
+
 	const activities = [
 		{
 			office: 'Requesting Office',
@@ -86,18 +102,18 @@
 	const printPrButtonIsDisabled = ref(false)
 
 	const prFormData = {
-	  id: props.data.id,
-	  pr_no: props.data.pr_no,
-	  section: props.data.section,
-	  department: props.data.department,
-	  fund: props.data.fund ? props.data.fund.split(' - ')[1] : '',
-	  fpp: props.data.fpp,
-	  status: props.data.status,
-	  purpose: props.data.purpose,
-	  remarks: props.data.remarks,
-	  created_at: new Date(props.data.created_at).toDateString(),
-	  attachments: JSON.parse(props.data.attachments),
-	  updated_since: Math.floor((new Date() - new Date(props.data.updated_at)) / (1000 * 60 * 60 * 24)),
+		id: props.data.id,
+		pr_no: props.data.pr_no,
+		section: props.data.section,
+		department: props.data.department,
+		fund: props.data.fund ? props.data.fund.split(' - ')[1] : '',
+		fpp: props.data.fpp,
+		status: props.data.status,
+		purpose: props.data.purpose,
+		remarks: props.data.remarks,
+		created_at: new Date(props.data.created_at).toDateString(),
+		attachments: JSON.parse(props.data.attachments),
+		updated_since: getLastApproved(),
 		bac_resolution: props.data.bac_resolution,
 		canvass: props.data.canvass,
 		purchase_order: props.data.purchase_order,
@@ -267,8 +283,13 @@
 				      </center>
 			    	</el-col>
 			    	<el-col :span="18">
-					    <div v-if="prFormData.remarks">
-					    	<el-alert :title="prFormData.remarks" type="error" :effect="tagEffect" :closable="false" />
+					    <div v-if="prFormData.status == 'Rejected'">
+					    	<el-alert v-if="prFormData.remarks" :title='`PR REJECTED with the following reason(s): "${prFormData.remarks}"`' type="error" :effect="tagEffect" :closable="false" />
+					    	<el-alert v-else :title="`PR REJECTED`" type="error" :effect="tagEffect" :closable="false" />
+					    	<br />
+					    </div>
+					    <div v-if="prFormData.status == 'Pending'">
+					    	<el-alert v-if="prFormData.remarks" :title='`PR SET TO PENDING with the following reason(s): "${prFormData.remarks}"`' type="warning" :effect="tagEffect" :closable="false" />
 					    	<br />
 					    </div>
 				    	<el-form-item>
