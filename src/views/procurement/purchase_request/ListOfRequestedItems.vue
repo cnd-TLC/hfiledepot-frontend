@@ -45,6 +45,7 @@
 	}
 
 	const loadPrItemData = async () => {
+		setAuthHeader()
 		try {
 			await axios.get(`${apiEndPoint}/api/list_of_pr_items/${router.params.id}/${pageSize.value}/?page=${currentPage.value}`).then((res) => {
 				listPrItemTableData.value = res.data.retrievedData
@@ -143,8 +144,8 @@
 							<el-table-column prop="quantity" label="Quantity" width="120">
 								<template #default="data">
 									<el-text v-if="!data.row.lumpsum"> {{ data.row.quantity }} {{ data.row.unit }}<span v-if="data.row.unit != null">(s)</span> </el-text>
-									<el-text class="lumpsum" v-else>
-										Lumpsum
+									<el-text v-else>
+										{{ data.row.quantity }} <span class="lumpsum">Lumpsum</span>
 									</el-text>
 								</template>
 							</el-table-column>

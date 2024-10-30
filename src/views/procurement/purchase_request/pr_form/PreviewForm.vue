@@ -128,7 +128,7 @@
 		lcrb: props.data.lcrb,
 	}
 
-	const loadPrItemData = async () => {
+	const setAuthHeader = () => {
 		const token = JSON.parse(localStorage.auth_token_default);
 		if(token){
 			axios.defaults.headers = {
@@ -136,6 +136,10 @@
 				Authorization: `Bearer ${token}`
 			}  
 		}
+	}
+
+	const loadPrItemData = async () => {
+		setAuthHeader()
 		try {
 			await axios.get(`${apiEndPoint}/api/list_of_pr_items/${props.data.id}/${pageSize.value}`).then((res) => {
 				listPrItemTableData.value = res.data.retrievedData
@@ -171,6 +175,24 @@
 		}
 		finally {
 			printPrButtonIsDisabled.value = false
+		}
+	}
+
+	const pingLatest = async () => {
+		setAuthHeader()
+		try{
+			await axios.post(`${apiEndPoint}/api/ping/${props.data.id}/${props.data.approved_by_cbo_name}/${props.data.approved_by_cto_name}/${props.data.approved_by_cmo_name}/${props.data.approved_by_bac_name}/${props.data.approved_by_cgso_name}/${props.data.approved_by_cao_name}/`).then((res) => {
+					ElMessage({
+						message: res.data.message,
+						type: 'success',
+					})
+				})
+		}
+		catch (err) {
+			ElMessage({
+				message: `Cannot ping: ${err.message}`,
+				type: 'error',
+			})
 		}
 	}
 
@@ -346,10 +368,10 @@
 								</el-table-column>
 								<el-table-column prop="quantity" label="Quantity" width="120">
 									<template #default="data">
-										<el-text v-if="!data.row.lumpsum"> {{ data.row.quantity }} {{ data.row.unit }}<span v-if="data.row.unit != null">/s</span> </el-text>
-										<el-text class="lumpsum" v-else>
-											Lumpsum
-										</el-text>
+										<el-text v-if="!data.row.lumpsum"> {{ data.row.quantity }} {{ data.row.unit }}<span v-if="data.row.unit != null">(s)</span> </el-text>
+											<el-text v-else>
+												{{ data.row.quantity }} <span class="lumpsum">Lumpsum</span>
+											</el-text>
 									</template>
 								</el-table-column>
 								<el-table-column label="Unit Cost" width="170">
@@ -444,6 +466,7 @@
 		</el-row>
 		<el-divider />
     <el-button size="large" class="print-width" type="success" @click="printPrForm" :disabled="printPrButtonIsDisabled"> Print </el-button> 
+    <el-button size="large" class="print-width" type="warning" @click="pingLatest" v-if="props.data.status == 'Pending'"> Ping </el-button> 
 	</el-form>
 </template>
 
@@ -458,6 +481,7 @@
 	}
 
 	.print-width {
+		margin-left: 10px;
 		display: block;
 		float: right;
 		width: 10%;

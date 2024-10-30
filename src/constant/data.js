@@ -290,6 +290,9 @@ export const validations = {
 		item_description: [
 			{ required: true, message: 'Item field is required', trigger: 'blur' },
 		],
+		unit: [
+			{ required: true, message: 'Unit field is required', trigger: 'blur' }
+		],
 		unit_cost: [
 			{ required: true, message: 'Unit Cost field is required', trigger: 'blur' },
 		]

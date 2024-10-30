@@ -325,8 +325,9 @@
 				</el-form-item>
 		    </el-col>
 	    	<el-col :span="4" class="input-area">
-		 		<el-form-item label="Unit">
-		 			<el-input v-model="ppmpItemFormData.unit" />
+		 		<el-form-item label="Unit" :prop="!ppmpItemFormData.lumpsum ? 'unit' : ''">
+		 			<el-input v-model="ppmpItemFormData.unit" :disabled="ppmpItemFormData.lumpsum" />
+			      	<el-checkbox v-model="ppmpItemFormData.lumpsum"> Lumpsum </el-checkbox>
 				</el-form-item>
 		    </el-col>
 	    	<el-col :span="4" class="input-area">
@@ -334,8 +335,7 @@
 		 			<template #label>
 		 				Quantity <i class="note"> schedule/milestone activities </i>
 		 			</template>
-			      	<el-input class="full-width" v-model="totalQuantity" :min="1" :disabled="ppmpItemFormData.lumpsum" readonly />
-			      	<el-checkbox v-model="ppmpItemFormData.lumpsum"> Lumpsum </el-checkbox>
+			      	<el-input class="full-width" v-model="totalQuantity" :min="1" readonly />
 				</el-form-item>
 		    </el-col>
 	    	<el-col :span="4" class="input-area">

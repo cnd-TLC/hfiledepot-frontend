@@ -85,10 +85,11 @@
 		prItemFormData.unit = item.unit
 		prItemFormData.category = item.category
 		prItemFormData.item_description = item.general_desc
-		prItemFormData.quantity = item.lumpsum ? 1 : item.quantity
+		// prItemFormData.quantity = item.lumpsum ? 1 : item.quantity
+		prItemFormData.quantity = item.quantity
 		prItemFormData.lumpsum = item.lumpsum ? true : false
 		prItemFormData.mode_of_procurement = item.mode_of_procurement
-		prItemFormData.unit_cost = item.estimated_budget
+		// prItemFormData.unit_cost = item.estimated_budget
 		prItemFormData.max_cost = item.estimated_budget
 		prItemFormData.max_quantity = item.quantity
 	}
@@ -155,8 +156,9 @@
 	      	</el-select>
 	    </el-form-item>
 	    <el-form-item label="Quantity">
-	      	<el-input v-if="prItemFormData.lumpsum" value="Lumpsum" readonly />
-	      	<el-input-number v-else class="full-width" v-model="prItemFormData.quantity" :max="prItemFormData.max_quantity" :min="1" />
+	      	<!-- <el-input v-if="prItemFormData.lumpsum" value="Lumpsum" readonly /> -->
+	      	<!-- <el-input-number v-else class="full-width" v-model="prItemFormData.quantity" :max="prItemFormData.max_quantity" :min="1" /> -->
+	      	<el-input-number class="full-width" v-model="prItemFormData.quantity" :max="prItemFormData.max_quantity" :min="1" />
 	    </el-form-item>
 	    <el-form-item label="Unit Cost (₱)" prop="unit_cost">
 	      	<el-input type="number" v-model="prItemFormData.unit_cost" :max="prItemFormData.max_cost" :min="1"/>

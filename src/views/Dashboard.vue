@@ -432,8 +432,8 @@
 											v-for="(notification, index) in notifications"
 
 											:key="index"
-											:icon="notification.message.includes('pending') ? Minus : (notification.message.includes('approved') || notification.message.includes('updated') ? Check : Close)"
-          									:type="notification.message.includes('pending') ? 'warning' : (notification.message.includes('approved') || notification.message.includes('updated') ? 'success' : 'danger')"
+											:icon="notification.message.includes('Please') ? Minus : (notification.message.includes('pending') ? Minus : (notification.message.includes('approved') || notification.message.includes('updated') ? Check : Close))"
+          									:type="notification.message.includes('Please') ? 'warning' : (notification.message.includes('pending') ? 'warning' : (notification.message.includes('approved') || notification.message.includes('updated') ? 'success' : 'danger'))"
 											:size="'large'"
 											:timestamp="new Date(notification.created_at).toLocaleString() "
 											>
